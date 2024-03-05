@@ -1,0 +1,189 @@
+﻿@using AssetManagement.Client.Client;
+@using AssetManagement.Client.Pages.GridButton;
+@using AssetManagement.Client.Shared.Popup
+@using AssetManagement.Dto.Models;
+@using GridBlazor
+@using GridBlazor.Pages
+@using GridShared
+@using GridShared.Utility
+@using Microsoft.Extensions.Primitives
+@using AssetManagement.Dto
+@inject ILogger<EmployeeOnboardingGrid> logger
+@inject NavigationManager NavigationManager
+@inject HttpClient HttpClient
+@inject AppClient clients
+
+<EditForm Model="model" OnValidSubmit="@OnValidSubmit">
+    <DataAnnotationsValidator />
+    <div class="card p-2">
+        <div class="form-group row">
+            <label class="col-form-label col-md-2 bold-font required-field">Company Code</label>
+            <div class="col-md-2 mb-1">
+                <InputSelect id="CompanyCode" @bind-Value="model.CompanyCode" class="form-control">
+                    <option selected>- Select -</option>
+                    @foreach (var c in company.ToList())
+                    {
+                        <option value="@c.CompanyCode">@c.CompanyCode</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="() => model.CompanyCode" />
+            </div>
+
+            <label class="col-form-label col-md-1 bold-font required-field">Name</label>
+            <div class="col-md-2 mb-1">
+                <InputText id="Name" @bind-Value="model.Name" class="form-control" />
+                <ValidationMessage For="() => model.Name" />
+            </div>
+
+            <label class="col-form-label col-md-2 bold-font required-field">External Email</label>
+            <div class="col-md-2 mb-1">
+                <InputText id="ExternalEmailId" @bind-Value="model.ExternalEmailId" class="form-control" />
+                <ValidationMessage For="() => model.ExternalEmailId" />
+            </div>
+
+            <div class="col-md-1" style="text-align:left">
+                <button type="submit" class="btn btn-primary">Send</button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+@if (_task.IsCompleted)
+{
+    <div class="row">
+        <div class="col-sm-12">
+            <GridComponent @ref="Component" T="EmployeeOnboardingDto" Grid="@_grid"></GridComponent>
+        </div>
+    </div>
+}
+else
+{
+    <div class="col-sm-12" style="margin-top:40vh">
+        <div class="loading-bar"></div>
+    </div>
+}
+<Dailog Title="@Message" Show="@show" OnCloseDialog="ResetForm">
+    @if (show)
+    {
+        @if (TaskCompleted)
+        {
+            <div style="text-align:center;">
+                @MessageBody
+            </div>
+        }
+        else
+        {
+            <div style="text-align:center">
+                <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+            </div>
+        }
+    }
+</Dailog>
+
+@code
+{
+    List<Company> company = new();
+    private CGrid<EmployeeOnboardingDto> _grid;
+    private Task _task;
+    private static GridComponent<EmployeeOnboardingDto> Component;
+
+    Action<IGridColumnCollection<EmployeeOnboardingDto>> columns = c =>
+    {
+        c.Add(o => o.Id).SetWidth("50px").Css("table-bordered").Titled("SN.");
+        c.Add(o => o.ExternalEmailId).Css("table-bordered");
+        c.Add(o => o.MobileNumber).Css("table-bordered");
+        c.Add(o => o.Date).Format("{0:dd/MM/yyyy}").Css("table-bordered").Titled("Initial Date");
+        c.Add(o => o.IsReplied).Css("table-bordered");
+        c.Add(o => o.ResponceDate).Format("{0:dd/MM/yyyy}").Css("table-bordered").Titled("Responce Date");
+        c.Add(o => o.PState).Css("table-bordered").Titled("Region");
+        c.Add().Encoded(false).Sanitized(false).RenderComponentAs<EmployeeOnboardEditButton>().SetWidth("50px").Titled("Edit");
+        c.Add().Encoded(false).Sanitized(false).RenderComponentAs<EmployeeOnboardShareButton>().SetWidth("50px").Titled("Share");
+        c.Add().Encoded(false).Sanitized(false).RenderComponentAs<OnboardingCandidateMoveToEmployee>().SetWidth("50px").Titled("  Go");
+        c.Add().Encoded(false).Sanitized(false).RenderComponentAs<EmployeeOnboardeeDeleteButton>(new List<Action<object>> { RefreshGrid }).SetWidth("10px").Titled("Delete");
+    };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        string url = $"odata/EmployeeOnboarding";
+        var query = new QueryDictionary<StringValues>();
+        query.Add("grid-sorting", "Id__1__1");
+
+        var client = new GridODataClient<EmployeeOnboardingDto>(HttpClient, url, query, false, "ordersGrid", columns, 5)
+            .Sortable(true)
+            .Filterable(true)
+            .ClearFiltersButton(true)
+            .SetStriped(true)
+            .WithMultipleFilters()
+            .WithGridItemsCount()
+            .SetExcelExport(true, true, "Onboarding.xlsx")
+            .ChangePageSize(true)
+            .EmptyText("No data available")
+            .SetKeyboard(true)
+            .Searchable(true, false, false);
+
+        _grid = client.Grid;
+        _task = client.UpdateGrid();
+        await _task;
+        company = new List<Company>(await clients.GetAllCompany());
+    }
+
+    public static async void RefreshGrid(object item)
+    {
+        await Component.UpdateGrid();
+    }
+
+
+    EmployeeOnboardingDto model = new();
+    string ErrorMessage = string.Empty;
+    string Message = string.Empty;
+    string MessageBody = "Thank you!";
+    bool IsError = false;
+    bool IsSuccess = false;
+    bool TaskCompleted = false;
+    private bool show = false;
+    protected async Task OnValidSubmit()
+    {
+        Message = string.Empty;
+        MessageBody = "Thank you!";
+        IsError = false;
+        IsSuccess = false;
+        show = true;
+        TaskCompleted = false;
+        try
+        {
+            Message = "Please wait";
+            var responce = await clients.UpsertEmployeeOnboarding(model);
+            if (responce.IsSuccess)
+            {
+                Message = responce.Message;
+                TaskCompleted = true;
+            }
+            else
+            {
+                Message = "Error!";
+                MessageBody = responce.Message;
+                TaskCompleted = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogCritical(ex, ex.Message);
+            IsError = true;
+            Message = "Error!";
+            MessageBody = ex.Message;
+            TaskCompleted = true;
+        }
+
+    }
+
+    private async void ResetForm()
+    {
+        show = false;
+        if (Message.Contains("Successfully Added"))
+        {
+            model = new();
+        }
+        await Component.UpdateGrid();
+    }
+
+
+}

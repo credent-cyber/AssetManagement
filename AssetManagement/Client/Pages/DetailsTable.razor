@@ -1,0 +1,52 @@
+﻿@page "/details"
+@using AssetManagement.Client.Client;
+@using AssetManagement.Dto;
+@using AssetManagement.Client;
+@inject AppClient appClient
+@*@attribute [Authorize(Roles = "User")]*@
+
+<h3>DetailsTable</h3>
+<a class="btn btn-primary mb-3" href="details-config"><span class="oi oi-plus"></span>Add Details</a>
+@if (details != null)
+{
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered nowrap">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var d in details)
+                    {
+                        <tr>
+                            <td>@d.Id</td>
+                            <td>@d.Name</td>
+                            <td>@d.Description</td>
+                            <td>
+                                <a class="btn btn-info" href="details-config/@d.Id">Edit</a>
+                                <a class="btn btn-danger" href="details-config/@d.Id">Delete</a>
+                            </td>
+                          
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+}
+
+@code {
+    IEnumerable<Details> details;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // var a = await appClient.GetDetailsById(1);
+        details = await appClient.GetAllDetails();
+    }
+}

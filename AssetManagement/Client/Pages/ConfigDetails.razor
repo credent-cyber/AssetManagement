@@ -1,0 +1,115 @@
+﻿@page "/details-config"
+@page "/details-config/{Id:int}"
+@using AssetManagement.Client.Client;
+@using AssetManagement.Dto;
+@inject AppClient appClient
+@inject ILogger<ConfigDetails> logger
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@attribute [Authorize]
+
+@if (model != null)
+{
+    <EditForm Model="@model" OnValidSubmit="@OnSave">
+        <DataAnnotationsValidator />
+        <div class="row">
+            <div class="card">
+                <div class="card-body">
+                    <div class="form-group row">
+                        <label for="" class="col-form-label col-md-3" style="padding-right: 0;">Name</label>
+                        <div class="col-md-9 mb-3">
+                            <InputText id="Name" @bind-Value="model.Name" class="form-control" />
+                            <ValidationMessage For="() => model.Name" />
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="" class="col-form-label col-md-3" style="padding-right: 0;">Description</label>
+                        <div class="col-md-9">
+                            <InputText id="Description" @bind-Value="model.Description" class="form-control" />
+                            <ValidationMessage For="() => model.Description" />
+                        </div>
+                    </div>
+                    <br />
+                    <div style="text-align:center;">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" @onclick="onClose" class="btn btn-secondary">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </EditForm>
+}
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    Details model;
+
+    string Message = string.Empty;
+    bool IsError = false;
+    bool IsSuccess = false;
+    bool loading = false;
+
+    public string Title
+    {
+        get
+        {
+            return model?.Id > 0 ? "Modify Template" : "Create New Template";
+        }
+    }
+    public void Init()
+    {
+        Message = string.Empty;
+        model = new Details();
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id != 0)
+        {
+            Message = string.Empty;
+            model = await appClient.GetDetailsById(Id);
+        }
+        else
+        {
+            Init();
+        }
+
+    }
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        return base.OnAfterRenderAsync(firstRender);
+    }
+    protected async Task OnSave()
+    {
+        loading = true;
+        IsError = false;
+        IsSuccess = false;
+        Message = string.Empty;
+        try
+        {
+            if (model.Id > 0)
+            {
+                Message = "Successfully Updated";
+            }
+            else
+            {
+                Message = "Successfully Added";
+            }
+            model = await appClient.UpsertDetailsAsync(model);
+            IsSuccess = true;
+
+        }
+        catch (Exception ex)
+        {
+            IsError = true;
+            Message = ex.Message;
+            logger.LogCritical(ex, ex.Message);
+        }
+
+        loading = false;
+        NavigationManager.NavigateTo("details");
+    }
+    protected void onClose()
+    {
+        NavigationManager.NavigateTo("details");
+    }
+}

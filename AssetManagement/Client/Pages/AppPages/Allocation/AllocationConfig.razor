@@ -1,0 +1,549 @@
+﻿@page "/allocation-config"
+@page "/allocation-config/{Id:int}"
+@using AssetManagement.Client.Client;
+@using AssetManagement.Client.Shared.Popup
+@using AssetManagement.Dto.Models
+@inject AppClient client
+@inject ILogger<AllocationConfig> logger
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@attribute [Authorize]
+
+<div>
+    <div class="card">
+        <div class="card-header bg-secondary text-center">
+            @Title
+        </div>
+        <div class="card-body">
+            @if (model == null && !TaskCompleted)
+            {
+                <div class="col-sm-12" style="margin-top:45vh; background-color: transparent;">
+                    <div class="card-header">
+                        <div class="loading-bar"></div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <EditForm Model="@model" OnValidSubmit="@OnValidSubmit">
+                    <DataAnnotationsValidator />
+                    @*<ValidationSummary/>*@
+                    <div class="form-group row mb-2">
+                        <label class="col-form-label col-md-2 bold-font required-field">Company Code</label>
+                        <div class="col-md-4">
+                            @*<select id="CompanyCode" @bind-value="model.CompanyCode" class="form-control" @onchange="OnCompanyCodeChange" @bind-value:event="oninput" disabled="@(model.Id > 0)">
+                        <option> Select </option>
+                        @foreach (var c in company)
+                        {
+                        <option value="@c.CompanyCode">@c.CompanyCode (@c.Name)</option>
+                        }
+                        </select>*@
+                            <MudGrid>
+                                <MudItem xs="12" sm="6" md="12">
+                                    <MudAutocomplete T="Company" Label="Select" @bind-Value="selectedCompany" SearchFunc="@CompanySearch" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                 ToStringFunc="@(e => e == null ? null : $"{e.Name} ({e.CompanyCode})")"
+                                                 Required="false"
+                                                 Disabled="model.Id > 0 ? true : false"
+                                                 ResetValueOnEmptyText="true"
+                                                 CoerceText="true"
+                                                 CoerceValue="true"
+                                                 MaxItems="null">
+                                    </MudAutocomplete>
+                                </MudItem>
+                            </MudGrid>
+                            @if (selectedCompany != null) { model.CompanyCode = selectedCompany.CompanyCode; }
+                            <ValidationMessage For="() => model.CompanyCode" />
+                        </div>
+
+                        <label class="col-form-label col-md-2 bold-font required-field">Asset Type</label>
+                        <div class="col-md-4">
+                            @* <select id="AssetType" @bind-value="model.AssetType" class="form-control" @onchange="OnAssetTypeChange" @bind-value:event="oninput" disabled="@(model.Id > 0)">
+                        <option>- Select -</option>
+                        @foreach (var at in assetType)
+                        {
+                        <option value="@at.Name">@at.Name</option>
+                        }
+                        </select>*@
+                            <MudGrid>
+                                <MudItem xs="12" sm="6" md="12">
+                                    <MudAutocomplete T="AssetType" Label="Select" @bind-Value="selectedAssetType" SearchFunc="@AssetTypeSearch" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                 ToStringFunc="@(e => e == null ? null : $"{e.Name}")"
+                                                 Required="false"
+                                                 Disabled="model.Id > 0 ? true : false"
+                                                 ResetValueOnEmptyText="true"
+                                                 CoerceText="true"
+                                                 CoerceValue="true"
+                                                 MaxItems="null">
+                                    </MudAutocomplete>
+                                </MudItem>
+                            </MudGrid>
+                            @if (selectedAssetType != null) { model.AssetType = selectedAssetType.Name; }
+                            <ValidationMessage For="() => model.AssetType" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row mb-2">
+                        <label class="col-form-label col-md-2 bold-font required-field">Asset</label>
+                        <div class="col-md-10">
+                            @*<InputSelect id="AssetId" @bind-Value="model.AssetId" class="form-control">
+                        <option>- Select -</option>
+                        @foreach (var group in asset.Where(o => o.AssetType == model.AssetType && o.CompanyCode == model.CompanyCode).GroupBy(o => o.Model))
+                        {
+                        <option value="@group.First().Id">@($"{group.Key} ({group.Count()})")</option>
+                        }
+                        </InputSelect>*@
+
+                            @*<InputSelect id="AssetId" @bind-Value="model.AssetId" class="form-control" disabled="@(model.Id > 0)">
+                        <option selected="selected">- Select -</option>
+                        @foreach (var a in asset.Where(o => o.AssetType == model.AssetType && o.CompanyCode == model.CompanyCode))
+                        {
+                        <option value="@a.Id">@a.Brand (@a.Model) SN - @a.SerialNumber</option>
+                        }
+                        </InputSelect>
+                        <ValidationMessage For="() => model.AssetId" />*@
+
+                            <MudGrid>
+                                <MudItem xs="12" sm="6" md="12">
+                                    <MudAutocomplete T="Asset" Label="Select" @bind-Value="selectedAsset" SearchFunc="@AssetSearch" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                 ToStringFunc="@(e => e == null ? null : $"{e.Brand} - {e.Model} (SN - {e.SerialNumber})")"
+                                                 Required="false"
+                                                 Disabled="model.Id > 0 ? true : false"
+                                                 ResetValueOnEmptyText="true"
+                                                 CoerceText="true"
+                                                 CoerceValue="true"
+                                                 MaxItems="null">
+                                    </MudAutocomplete>
+                                </MudItem>
+                            </MudGrid>
+                            @if (selectedAsset != null) { model.AssetId = selectedAsset.Id; }
+                            <ValidationMessage For="() => model.AssetId" />
+                        </div>
+                    </div>
+                   
+                    <div class="form-group row mb-2">
+                        <label class="col-form-label col-md-2 bold-font">Asset Details</label>
+                        <div class="col-md-10">
+                            <MudCard>
+                                <MudCardContent>
+                                    @if (model.AssetId == null)
+                                    {
+                                        <MudText Typo="Typo.body2">No Asset Selected!</MudText>
+                                    }
+                                    else
+                                    {
+                                        <MudText Typo="Typo.body2">@asset.Where(a=>a.Id == model.AssetId).Select(d=>d.Description).FirstOrDefault()</MudText>
+                                    }
+                                </MudCardContent>
+                            </MudCard>
+                        </div>
+                    </div>
+
+                    @if (model.Id == 0)
+                    {
+                        <div class="form-group row mb-2">
+                            <div class="col-md-12">
+                                <label class="col-form-label bold-font">Inter Company Allocation</label>
+                                <input class="form-check-input mt-3 ml-3" type="checkbox" @bind="@model.Checkbox" @oninput="IntraAllocation">
+                            </div>
+                        </div>
+                    }
+
+                    <div class="form-group row mb-2">
+                        @if (model.Checkbox)
+                        {
+                            <label class="col-form-label col-md-2 bold-font">CompanyOfEmployee</label>
+                            <div class="col-md-4">
+                               @* <select id="CompanyIdOfEmployee" @bind-value="model.EmployeeCompanyCode" class="form-control" @onchange="()=> selectedEmployee=null" @bind-value:event="oninput">
+                                    <option> Select </option>
+                                    @foreach (var c in company)
+                                    {
+                                        <option value="@c.CompanyCode">@c.CompanyCode (@c.Name)</option>
+                                    }
+                                </select>*@
+                                <MudGrid>
+                                    <MudItem xs="12" sm="6" md="12">
+                                        <MudAutocomplete T="Company" Label="Select" @bind-Value="selectedEmployeeCompany" SearchFunc="@EmployeeCompanySearch" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                 ToStringFunc="@(e => e == null ? null : $"{e.Name} ({e.CompanyCode})")"
+                                                 Required="false"
+                                                 Disabled="model.Id > 0 ? true : false"
+                                                 ResetValueOnEmptyText="true"
+                                                 CoerceText="true"
+                                                 CoerceValue="true"
+                                                 MaxItems="null">
+                                        </MudAutocomplete>
+                                    </MudItem>
+                                </MudGrid>
+                                @if (selectedEmployeeCompany != null) { model.EmployeeCompanyCode = selectedEmployeeCompany.CompanyCode; }
+                            </div>
+                        }
+                        <label class="col-form-label col-md-2 bold-font required-field">Employee</label>
+                        <div class="col-md-4">
+                            @*<InputSelect id="EmployeeId" @bind-Value="model.EmployeeId" class="form-control" disabled="@(model.Id > 0)">
+                        <option>- Select -</option>
+                        @if (model.CompanyCode != "" && !model.Checkbox)
+                        {
+                        @foreach (var e in employee.Where(o => o.CompanyCode == model.CompanyCode && o.Status != EmployeeStatus.Resigned))
+                        {
+                        <option value="@e.Id">@e.EmployeeName (@e.CompanyCode) EmpID : @e.EmployeeId</option>
+                        }
+                        }
+                        @if (model.CompanyCode != "" && model.Checkbox)
+                        {
+                        @foreach (var e in employee.Where(o => o.CompanyCode == model.EmployeeCompanyCode && o.Status != EmployeeStatus.Resigned))
+                        {
+                        <option value="@e.Id">@e.EmployeeName (@e.CompanyCode) EmpID : @e.EmployeeId</option>
+                        }
+                        }
+                        </InputSelect>*@
+                            <MudGrid>
+                                <MudItem xs="12" sm="6" md="12">
+
+                                    <MudAutocomplete T="Employee" Label="Select" @bind-Value="selectedEmployee" SearchFunc="@EmployeeSearch" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                 ToStringFunc="@(e => e == null ? null : $"{e.EmployeeName} - {e.CompanyCode} (EmpID - {e.EmployeeId})")"
+                                                 Required="false"
+                                                 Disabled="model.Id > 0 ? true : false"
+                                                 ResetValueOnEmptyText="true"
+                                                 CoerceText="true"
+                                                 CoerceValue="true"
+                                                 MaxItems="null">
+                                    </MudAutocomplete>
+                                </MudItem>
+                            </MudGrid>
+                            @if (selectedEmployee != null) { model.EmployeeId = selectedEmployee.Id; }
+                            <ValidationMessage For="() => model.EmployeeId" />
+                        </div>
+
+                    </div>
+                    <div class="form-group row mb-2">
+                        <label class="col-form-label col-md-2 bold-font required-field">Allocation Type</label>
+                        <div class="col-md-4">
+                            <InputSelect id="AllocationType" @bind-Value="model.AllocationType" class="form-control">
+                                @foreach (var al in Enum.GetValues<AllocationType>())
+                                {
+                                    <option value="@al">@al</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="() => model.AllocationType" />
+                        </div>
+                    </div>
+
+                    
+
+
+
+                    <div class="form-group row mb-2">
+                        <label class="col-form-label col-md-2 bold-font required-field">Allocated On</label>
+                        <div class="col-md-4">
+                            @*<InputDate id="IssueDate" @bind-Value="model.IssueDate" class="form-control" />*@
+                            <input type="date" id="allocationdate" name="allocationdate" @bind="model.IssueDate" max="@maxDateAttribute" class="form-control">
+                            <ValidationMessage For="() => model.IssueDate" />
+                        </div>
+                        @if (model.AllocationType == AllocationType.Temporary)
+                        {
+                            <label class="col-form-label col-md-2 bold-font required-field">Allocated Till</label>
+                            <div class="col-md-4">
+                                @*<InputDate id="IssueTill" @bind-Value="model.IssueTill" class="form-control" />*@
+                                <input type="date" id="allocationdate" name="allocationdate" @bind="model.IssueTill" min=@model.IssueDate.Date.ToString("yyyy-MM-dd") class="form-control">
+                                <ValidationMessage For="() => model.IssueTill" />
+                            </div>
+                        }
+                    </div>
+
+                    <div style="text-align:center;" class="mt-4">
+                        @if (model.Id > 0)
+                        {
+                            <button type="submit" class="btn btn-success col-md-2 mr-1">Update</button>
+                        }
+                        else
+                        {
+                            <button type="submit" class="btn btn-success col-md-2 mr-1">Allocate</button>
+                        }
+                        <button type="button" class="btn btn-secondary col-md-2 mr-1" @onclick="OnClose">Close</button>
+                        @if (model.Id > 0)
+                        {
+                            <button type="button" class="btn btn-danger col-md-2" @onclick="()=>unallocate=true">UnAllocate</button>
+                        }
+                    </div>
+                    <br />
+                </EditForm>
+
+                <Dailog Title="@Message" Show="@show" OnCloseDialog="ResetForm">
+                    @if (show)
+                    {
+                        @if (TaskCompleted)
+                        {
+                            <div style="text-align:center;">
+                                @MessageBody
+                            </div>
+                        }
+                        else
+                        {
+                            <div style="text-align:center">
+                                <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+                            </div>
+                        }
+                    }
+                </Dailog>
+                <SimpleDailog Title="UnAllocate" Show="@unallocate" OnCloseDialog="ResetForm">
+                    @if (unallocate)
+                    {
+                        @if (!TaskCompleted && !process)
+                        {
+                            <div style="text-align:center;">
+                                <h6>Are you sure want to UnAllocate?</h6>
+                                <div class="mb-3 mr-2 ml-2">
+                                    <label class="col-form-label bold-font float-start">ReturnDate</label>
+                                    <InputDate class="form-control" @bind-Value="model.ReturnDate" @oninput="DateCheck" />
+                                    <p class="text-danger">@ReturnDateValidation</p>
+                                </div>
+
+                                <button class="btn btn-danger" @onclick="UnAllocate">Yes</button>
+                                <button class="btn btn-primary" @onclick="()=>unallocate=false">No</button>
+                            </div>
+                        }
+                        else if (TaskCompleted && !process)
+                        {
+                            <div style="text-align:center;">
+                                @MessageBody
+                            </div>
+                        }
+                        else
+                        {
+                            <div style="text-align:center">
+                                <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+                            </div>
+                        }
+                    }
+                </SimpleDailog>
+            }
+        </div>
+    </div>
+</div>
+
+
+@code {
+
+    [Parameter]
+    public int Id { get; set; }
+    public string Title
+    {
+        get
+        {
+            return model?.Id > 0 ? "Modify Allocation" : "New Allocation";
+        }
+    }
+
+    private bool show = false;
+    private bool unallocate = false;
+    bool process = false;
+    string Message = string.Empty;
+    string MessageBody = "Thank you!";
+    string ReturnDateValidation = string.Empty;
+    bool IsError = false;
+    bool IsSuccess = false;
+    bool TaskCompleted = false;
+    Allocation model = new();
+    List<Company> company = new();
+    List<AssetType> assetType = new();
+    List<Asset> asset = new();
+    List<Employee> employee = new();
+
+    private string maxDateAttribute { get; set; } = DateTime.Now.Date.ToString("yyyy-MM-dd");
+
+    protected override async Task OnInitializedAsync()
+    {
+        company = new List<Company>(await client.GetAllCompany());
+        assetType = new List<AssetType>(await client.GetAllAssetType());
+        employee = new List<Employee>(await client.GetAllEmployee());
+        asset = new List<Asset>(await client.GetAllAsset());
+        if (Id > 0)
+        {
+            model = await client.GetAllocationById(Id);
+            selectedCompany = company.Where(o => o.CompanyCode == model.CompanyCode).FirstOrDefault();
+            selectedEmployeeCompany = company.Where(o => o.CompanyCode == model.EmployeeCompanyCode).FirstOrDefault();
+            selectedAsset = asset.Where(o => o.Id == model.AssetId).FirstOrDefault();
+            selectedEmployee = employee.Where(o => o.Id == model.EmployeeId).FirstOrDefault();
+            selectedAssetType = assetType.Where(o => o.Name == model.AssetType).FirstOrDefault();
+        }
+        else
+        {
+            asset = asset.Where(a => a.Status == AllocationStatus.Free && a._AssetStatus == AssetStatus.Active).ToList();
+        }
+    }
+
+    protected async Task OnValidSubmit()
+    {
+        Message = string.Empty;
+        MessageBody = "Thank you!";
+        IsError = false;
+        IsSuccess = false;
+        show = true;
+        TaskCompleted = false;
+        try
+        {
+            Message = "Please wait";
+            int Id = model.Id;
+            model.Responce = Responce.NotShared;
+            model.CompanyId = company.Where(o => o.CompanyCode == model.CompanyCode).Select(o => o.Id).First();
+            model.EmployeeName = employee.Where(o => o.Id == model.EmployeeId).Select(o => o.EmployeeName).First();
+            model.EmployeeCompanyCode = employee.Where(o => o.Id == model.EmployeeId).Select(o => o.CompanyCode).First();
+            model.EmployeeEmail = employee.Where(o => o.Id == model.EmployeeId).Select(o => o.EmailId).First();
+            model.AssetModel = $"{asset.Where(o => o.Id == model.AssetId).Select(o => o.Brand).First()} - {asset.Where(o => o.Id == model.AssetId).Select(o => o.Model).First()} (SN - {asset.Where(o => o.Id == model.AssetId).Select(o => o.SerialNumber).First()})";
+            if (!model.Checkbox) { model.EmployeeCompanyCode = model.CompanyCode; }
+
+            //model.Asset.Status = AllocationStatus.Allocated;
+            var response = await client.UpsertAllocationAsync(model);
+            if (response.IsSuccess)
+            {
+                Message = Id > 0 ? "Successfully Updated" : "Successfully Added";
+                TaskCompleted = true;
+            }
+            else
+            {
+                Message = "Error!";
+                MessageBody = response.Message;
+                TaskCompleted = true;
+            }
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            logger.LogCritical(ex, ex.Message);
+            IsError = true;
+            Message = "Error!";
+            MessageBody = ex.Message;
+            TaskCompleted = true;
+        }
+    }
+
+    private async void ResetForm()
+    {
+        show = false;
+        if (Message.Contains("Successfully Added"))
+        {
+            model = new();
+            selectedCompany = null;
+            selectedEmployeeCompany = null;
+            selectedAsset = null;
+            selectedEmployee = null;
+            selectedAssetType = null;
+        }
+        asset = new List<Asset>(await client.GetAllAsset());
+        asset = asset.Where(a => a.Status == AllocationStatus.Free && a._AssetStatus == AssetStatus.Active).ToList();
+    }
+    public void OnClose()
+    {
+
+        NavigationManager.NavigateTo("/allocations");
+    }
+    protected async Task UnAllocate()
+    {
+        ReturnDateValidation = string.Empty;
+        if (model.IssueDate > model.ReturnDate)
+        {
+            ReturnDateValidation = "Return Date is Invalid!";
+            return;
+        }
+        var result = await client.UnAllocation(model.Id);
+        NavigationManager.NavigateTo("/allocations");
+    }
+
+    public void DateCheck()
+    {
+        ReturnDateValidation = model.IssueDate > model.ReturnDate ? "Return Date is Invalid!" : string.Empty;
+    }
+
+    public void IntraAllocation()
+    {
+        selectedEmployee = null;
+    }
+    private void OnCompanyCodeChange(ChangeEventArgs e)
+    {
+        model.AssetType = null;
+        model.AssetId = null; // Reset the AssetId to null or an appropriate default value
+        selectedAssetType = null;
+        selectedAsset = null;
+    }
+    public void OnAssetTypeChange()
+    {
+        model.AssetId = null;
+        selectedAsset = null;
+    }
+
+    private Asset? selectedAsset { get; set; }
+    private async Task<IEnumerable<Asset>> AssetSearch(string value)
+    {
+        model.AssetId = null;
+        await Task.Delay(5);
+        if (string.IsNullOrEmpty(value))
+            return asset.Where(o => o.AssetType == model.AssetType && o.CompanyCode == model.CompanyCode && o._AssetStatus == AssetStatus.Active);
+
+        return asset.Where(o => o.AssetType == model.AssetType && o.CompanyCode == model.CompanyCode && o._AssetStatus == AssetStatus.Active)
+            .Where(x => x.Model.Contains(value, StringComparison.InvariantCultureIgnoreCase) || x.SerialNumber.Contains(value, StringComparison.InvariantCultureIgnoreCase)
+            || x.Brand.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    private Employee? selectedEmployee { get; set; }
+    private async Task<IEnumerable<Employee>> EmployeeSearch(string value)
+    {
+        await Task.Delay(5);
+        if (string.IsNullOrEmpty(value) && !model.Checkbox)
+            return employee.Where(o => o.CompanyCode == model.CompanyCode && o.Status != EmployeeStatus.Resigned);
+       
+        if (string.IsNullOrEmpty(value) && model.Checkbox)
+            return employee.Where(o => o.CompanyCode == model.EmployeeCompanyCode && o.Status != EmployeeStatus.Resigned);     
+
+        if (!string.IsNullOrEmpty(value) && model.Checkbox && model.EmployeeCompanyCode != null)
+            return employee.Where(o => o.CompanyCode == model.EmployeeCompanyCode && o.Status != EmployeeStatus.Resigned)
+              .Where(x => x.EmployeeId.Contains(value, StringComparison.InvariantCultureIgnoreCase) || x.EmployeeName.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+       
+        if (!string.IsNullOrEmpty(value) && model.Checkbox && model.EmployeeCompanyCode == null)
+            return null;
+
+        return employee.Where(o => o.CompanyCode == model.CompanyCode && o.Status != EmployeeStatus.Resigned)
+            .Where(x => x.EmployeeId.Contains(value, StringComparison.InvariantCultureIgnoreCase) || x.EmployeeName.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    private AssetType? selectedAssetType { get; set; }
+    private async Task<IEnumerable<AssetType>> AssetTypeSearch(string value)
+    {
+        model.AssetId = null;
+        selectedAsset = null;
+        await Task.Delay(5);
+        if (string.IsNullOrEmpty(value))
+            return assetType;
+        return assetType
+            .Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    private Company? selectedCompany { get; set; }
+    private async Task<IEnumerable<Company>> CompanySearch(string value)
+    {
+        model.CompanyCode = null;
+        model.AssetId = null;
+        model.AssetType = null;
+        selectedAsset = null;
+        selectedAssetType = null;
+        await Task.Delay(5);
+        if (string.IsNullOrEmpty(value))
+            return company;
+        return company
+            .Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase) ||
+            x.CompanyCode.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    private Company? selectedEmployeeCompany { get; set; }
+    private async Task<IEnumerable<Company>> EmployeeCompanySearch(string value)
+    {
+        selectedEmployee = null;
+        selectedEmployeeCompany = null;
+        model.EmployeeId = null;
+        model.EmployeeCompanyCode = null;
+        await Task.Delay(5);
+        if (string.IsNullOrEmpty(value))
+            return company;
+        return company
+            .Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase) ||
+            x.CompanyCode.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+}

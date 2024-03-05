@@ -1,0 +1,133 @@
+﻿@inject IJSRuntime JSRuntime
+@inject NavigationManager navigationManager
+@inject IdentityAuthenticationStateProvider authStateProvider
+
+<nav class="sidebar close">
+    <header>
+        <div class="image-text">
+            <span class="image">
+                 <a href="/"> <img src="/Image/logo.png" alt=""> </a>
+            </span>
+
+            <div class="text logo-text">
+                <span class="name" style="font-size:16px; font-weight: 800;">AssetManagement</span>
+                <AuthorizeView>
+                    <Authorized>
+                        <span class="profession" style="font-size:12px;">@context.User.Identity.Name</span>
+                    </Authorized>
+                </AuthorizeView>
+            </div>
+        </div>
+
+        <a class='bx bx-chevron-right toggle' @onclick="toggleSideManu"></a>
+    </header>
+
+    <div class="menu-bar">
+        <div class="menu">
+
+            <li class="search-box">
+                <i class='bx bx-search icon'></i>
+                <input type="text" placeholder="Search...">
+            </li>
+
+            <ul class="menu-links">
+                <li class="">
+                    <a href="/">
+                        <i class='bx bx-home-alt icon' title="Home/Dashboard"></i>
+                        <span class="text nav-text">Dashboard</span>
+                    </a>
+                </li>
+
+                <li class="">
+                    <a href="companies">
+                        <i class="fa fa-building-o icon" aria-hidden="true" title="Companies"></i>
+                        <span class="text nav-text">Companies</span>
+                    </a>
+                </li>
+
+                <li class="">
+                    <a href="employees">
+                        <i class="fa fa-users icon" aria-hidden="true" title="Employees"></i>
+                        <span class="text nav-text">Employees</span>
+                    </a>
+                </li>
+
+                <li class="">
+                    <a href="assets">
+                        <i class="fa fa-laptop icon" aria-hidden="true" title="Assets"></i>
+                        <span class="text nav-text">Assets</span>
+                    </a>
+                </li>
+
+                <li class="">
+                    <a href="allocations">
+                        <i class="fa fa-pencil-square-o icon" aria-hidden="true" title="Allocations"></i>
+                        <span class="text nav-text">Allocations</span>
+                    </a>
+                </li>
+
+                <li class="">
+                    <a href="reports">
+                        <i class="fa fa-bar-chart icon" aria-hidden="true" title="Reports"></i>
+                        <span class="text nav-text">Reports</span>
+                    </a>
+                </li>
+                <AuthorizeView Roles="SuperAdmin,Admin">
+                    <li class="">
+                        <a href="admin-controls">
+                            <i class="fa fa-lock icon" aria-hidden="true" title="Admin Control"></i>
+                            <span class="text nav-text">Admin Control</span>
+                        </a>
+                    </li>
+                </AuthorizeView>
+            </ul>
+        </div>
+
+        <div class="bottom-content">
+            <li class="">
+                <a @onclick="LogoutClick" style="cursor:pointer">
+                    <i class='bx bx-log-out icon' title="Logout"></i>
+                    <span class="text nav-text">Logout</span>
+                </a>
+            </li>
+
+            <li class="mode">
+                <div class="sun-moon">
+                    <i class='bx bx-moon icon moon'></i>
+                    <i class='bx bx-sun icon sun'></i>
+                </div>
+                <span class="mode-text text">Dark mode</span>
+
+                <a class="toggle-switch" @onclick="toggleLightDarkMode">
+                    <span class="switch"></span>
+                </a>
+            </li>
+
+        </div>
+    </div>
+
+</nav>
+
+
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        //await JSRuntime.InvokeAsync<IJSObjectReference>("import", "/Js/Theme.js");
+    }
+
+    async Task LogoutClick()
+    {
+        await authStateProvider.Logout();
+        navigationManager.NavigateTo("/login");
+    }
+    async Task toggleSideManu()
+    {
+        await JSRuntime.InvokeVoidAsync("toggleSideManu");
+    } 
+    
+    async Task toggleLightDarkMode()
+    {
+        await JSRuntime.InvokeVoidAsync("toggleLightDarkMode");
+    }
+}

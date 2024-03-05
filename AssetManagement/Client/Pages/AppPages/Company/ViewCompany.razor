@@ -1,0 +1,168 @@
+﻿@page "/company-view/{Id:int}"
+@using AssetManagement.Client.Client;
+@using AssetManagement.Client.Pages.AppPages.Assets.Component
+@using AssetManagement.Client.Shared.Popup
+@using AssetManagement.Dto.Models
+@inject AppClient client
+@inject IJSRuntime JSRuntime;
+@inject NavigationManager NavigationManager
+@attribute [Authorize]
+
+
+<div>
+    <div id="printArea" class="card">
+        <div class="card-header bg-secondary text-center">
+            @Title
+        </div>
+        <div class="card-body">
+            @if (model == null)
+            {
+                <div class="col-sm-12" style="margin-top:45vh; background-color: transparent;">
+                    <div class="loading-bar"></div>
+                </div>
+            }
+            else
+            {
+                <EditForm Model="@model">
+                    <form class="row g-2">
+                        <div class="col-md-4">
+                            <label for="companyCode" class="form-label">Company Code : @model.CompanyCode </label>
+
+                        </div>
+                        <div class="col-md-4">
+                            <label for="companyName" class="form-label">Company Name : @model.Name</label>
+
+                        </div>
+                        <div class="col-md-4">
+                            <label for="gstn" class="form-label">GST Number : @model.GSTNNumber</label>
+
+                        </div>
+                        <hr style="color:orange" />
+
+
+                        <label for="address" class="form-label" style="background-color:greenyellow">Address:  </label>
+                        <div class="col-12">
+                            <label for="address" class="form-label">Address : @model.Address</label>
+
+                        </div>
+                        <div class="col-md-4">
+                            <label for="state">State : @model.State</label>
+
+                        </div>
+                        <div class="col-md-4">
+                            <label for="country">Country : @model.Country</label>
+
+                        </div>
+                        <div class="col-md-4">
+                            <label for="pin">PIN Code : @model.PIN </label>
+
+                        </div>
+                        <hr style="color:orange" />
+
+                        <label for="bank" class="form-label" style="background-color:greenyellow">Bank Details: </label>
+                        <div class="col-md-6">
+                            <label for="bankname">Bank Name : @model.BankName</label>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="accnum">Account Number : @model.AccNumber </label>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="ifsc">IFSC Code : @model.IFSC</label>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="swiftcode">Swift Code : @model.SwiftCode</label>
+                        </div>
+                        <hr style="color:orange" />
+
+
+                        <div class="col-md-6">
+                            <label for="incorp">Incorporation No : @model.IncorporationNumber</label>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="incorpDate">Incorporation Date : @model.IncorporationDate</label>
+
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="pfn">PF Number : @model.PFNumber</label>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="tan">TAN No : @model.TANNumber</label>
+                        </div>
+
+
+
+                        <div class="col-md-6">
+                            <label for="pann">Pan Number : @model.PanNumber</label>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="esin">ESI Number : @model.ESINumber</label>
+                        </div>
+
+
+
+                        @if (model.RegistrationWith != RegistrationWith.None)
+                        {
+
+                            <div class="col-md-12">
+                                <label for="reg">RegistrationWith : @model.RegistrationWith</label>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="startn">Startup Number : @model.StartupNumber </label>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="uan">UAN Number : @model.UAMNumber</label>
+                            </div>
+                            <hr style="color:orange" />
+                        }
+
+
+
+                        <hr style="color:orange" />
+                        <div class="col-md-4">
+                            <label for="cont">Contact Person : @model.ContactPerson</label>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="cont">Contact Number : @model.ContactNumber</label>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="email">EmailId : @model.EmailId </label>
+                        </div>
+                        <hr style="color:orange" />
+
+                        <div style="text-align:center;" class="mt-4">
+                            <button type="button" class="btn btn-danger col-md-2" @onclick="OnClose">Close</button>
+                            @*<button type="buton" class="btn btn-info col-md-2" @onclick="Print">Print</button>*@
+                        </div>
+
+                    </form>
+                </EditForm>
+            }
+        </div>
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    Company model = new();
+    public string Title = "View Company";
+
+    protected override async Task OnInitializedAsync()
+    {
+        model = await client.GetCompanyById(Id);
+    }
+    public void OnClose()
+    {
+        NavigationManager.NavigateTo("/companies");
+    }
+
+    private async Task Print()
+    {
+
+
+    }
+    
+}
+

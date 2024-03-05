@@ -1,0 +1,281 @@
+﻿@page "/asset-config"
+@page "/asset-config/{Id:int}"
+
+@using AssetManagement.Client.Client;
+@using AssetManagement.Client.Pages.AppPages.Assets.Component
+@using AssetManagement.Client.Shared.Popup
+@using AssetManagement.Dto.Models
+@inject AppClient client
+@inject ILogger<AssetDataConfig> logger
+@inject IJSRuntime JSRuntime;
+@inject NavigationManager NavigationManager
+@attribute [Authorize]
+
+
+<div>
+    <div class="card">
+        <div class="card-header bg-secondary text-center">
+            @Title
+        </div>
+        <div class="card-body">
+            @if (model == null)
+            {
+                <div class="col-sm-12" style="margin-top:45vh; background-color: transparent;">
+                    <div class="loading-bar"></div>
+                </div>
+            }
+            else
+            {
+                <EditForm Model="@model" OnValidSubmit="@OnValidSubmit">
+                    <DataAnnotationsValidator />
+                    <div class="form-group row mb-2">
+                        <label class="col-form-label col-md-2 bold-font required-field">Company Code</label>
+                        <div class="col-md-2">
+                            <InputSelect id="CompanyCode" @bind-Value="model.CompanyCode" class="form-control" disabled="@(model.Id > 0)">
+                                <option>- Select -</option>
+                                @foreach (var c in company)
+                                {
+                                    <option value="@c.CompanyCode">@c.CompanyCode</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="() => model.CompanyCode" />
+                        </div>
+                        <label class="col-form-label col-md-1 bold-font required-field">Type</label>
+                        <div class="col-md-2">
+                            <select id="AssetTypeId" @bind-value="model.AssetTypeId" class="form-control" @onchange="AssetTypeChange" @bind-value:event="oninput">
+                                <option>- Asset Type -</option>
+                                @foreach (var a in assetType)
+                                {
+                                    <option value="@a.Id">@a.Name</option>
+                                }
+                            </select>
+                            <ValidationMessage For="() => model.AssetTypeId" />
+                        </div>
+
+                        <div class="col-md-1">
+                            <a class="btn btn-primary" @onclick="@(() => AddAsset = true)">Add</a>
+                        </div>
+                        <label class="col-form-label col-md-2 bold-font required-field">SubType</label>
+                        <div class="col-md-2">
+                            <InputSelect id="SubAssetType" @bind-Value="model.SubAssetType" class="form-control" >
+                                <option>- Select -</option>
+                                @if (1==1)
+                                {
+                                    @foreach (var st in assetTypeFilter.SubAssets)
+                                    {
+                                        <option value="@st.Id">@st.Name</option> 
+                                    }
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="() => model.AssetTypeId" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row mb-2">
+                        <label class="col-form-label col-md-2 bold-font required-field">Make</label>
+                        <div class="col-md-2">
+                            <InputText id="Brand" @bind-Value="model.Brand" class="form-control" />
+                            <ValidationMessage For="() => model.Brand" />
+                        </div>
+
+                        <label class="col-form-label col-md-1 bold-font required-field">Model</label>
+                        <div class="col-md-3">
+                            <InputText id="Model" @bind-Value="model.Model" class="form-control" />
+                            <ValidationMessage For="() => model.Model" />
+                        </div>
+
+                        <label class="col-form-label col-md-2 bold-font required-field">SerialNumber</label>
+                        <div class="col-md-2">
+                            <InputText id="SerialNumber" @bind-Value="model.SerialNumber" class="form-control" />
+                            <ValidationMessage For="() => model.SerialNumber" />
+                        </div>
+                    </div>
+                    <div class="form-group row mb-2">
+                        <label class="col-form-label col-md-2 bold-font required-field">Mac Address</label>
+                        <div class="col-md-10">
+                            <InputText id="MacAddress" @bind-Value="model.MacAddress" class="form-control" />
+                            <ValidationMessage For="() => model.MacAddress" />
+                        </div>
+                    </div>
+                    <div class="form-group row mb-2">
+                        <label class="col-form-label col-md-2 bold-font required-field">Description</label>
+                        <div class="col-md-10">
+                            <InputTextArea id="Description" @bind-Value="model.Description" class="form-control" />
+                            <ValidationMessage For="() => model.Description" />
+                        </div>
+                    </div>
+                    <div class="form-group row mb-2">
+                        <label class="col-form-label col-md-2 bold-font required-field">Acquire Date</label>
+                        <div class="col-md-2">
+                            <InputDate id="AcquireDate" @bind-Value="model.AcquireDate" class="form-control" />
+                            <ValidationMessage For="() => model.AcquireDate" />
+                        </div>
+
+                        <label class="col-form-label col-md-2 bold-font required-field">Vendor Name</label>
+                        <div class="col-md-2">
+                            <InputText id="VendorName" @bind-Value="model.VendorName" class="form-control" />
+                            <ValidationMessage For="() => model.VendorName" />
+                        </div>
+
+                        <label class="col-form-label col-md-2 bold-font required-field">Allocation Status</label>
+                        <div class="col-md-2">
+                            <InputSelect id="Status" @bind-Value="model.Status" class="form-control" disabled>
+                                @foreach (var t in Enum.GetValues<AllocationStatus>())
+                                {
+                                    <option value="@t">@t</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="() => model.Status" />
+                        </div>
+                    </div>
+
+
+                    <div style="text-align:center;" class="mt-5">
+                        <button type="submit" class="btn btn-success col-md-2">Submit</button>
+                        <button type="button" class="btn btn-danger col-md-2" @onclick="OnClose">Close</button>
+                    </div>
+                </EditForm>
+
+                <Dailog Title="@Message" Show="@show" OnCloseDialog="ResetForm">
+                    @if (show)
+                    {
+                        @if (TaskCompleted)
+                        {
+                            <div style="text-align:center;">
+                                @MessageBody
+                            </div>
+                        }
+                        else
+                        {
+                            <div style="text-align:center">
+                                <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+                            </div>
+                        }
+                    }
+                </Dailog>
+
+                <PageDialog Title="@Title" Show="AddAsset" ClosePageDialog="ClosePopUp">
+                    <AddAssetType />
+                </PageDialog>
+            }
+        </div>
+    </div>
+
+
+</div>
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    public string Title
+    {
+        get
+        {
+            return model?.Id > 0 ? "Modify Asset Data" : "Add Asset Data";
+        }
+    }
+
+    private bool show = false;
+    string Message = string.Empty;
+    string MessageBody = "Thank you!";
+    bool IsError = false;
+    bool IsSuccess = false;
+    bool TaskCompleted = false;
+    bool AddAsset = false;
+
+    Asset model = new();
+    List<Company> company = new();
+    List<AssetType> assetType = new();
+    AssetType assetTypeFilter = new();
+
+
+    public void Init()
+    {
+        Asset model = new();
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        company = new List<Company>(await client.GetAllCompany());
+        assetType = new List<AssetType>(await client.GetAllAssetType());
+
+        if (Id > 0)
+        {
+            model = await client.GetAssetById(Id);
+        }
+        else
+        {
+            Init();
+        }
+    }
+
+    protected async Task OnValidSubmit()
+    {
+        Message = string.Empty;
+        MessageBody = "Thank you!";
+        IsError = false;
+        IsSuccess = false;
+        show = true;
+        TaskCompleted = false;
+        try
+        {
+            Message = "Please wait";
+            int Id = model.Id;
+            int AssetTypeId = (model.AssetTypeId - 1) ?? 0;
+            if(AssetTypeId >= 0)
+                model.AssetType = assetType[AssetTypeId].Name;
+
+            model.CompanyId = company.Where(o => o.CompanyCode == model.CompanyCode).Select(o => o.Id).First();
+
+            var response = await client.UpsertAssetAsync(model);
+            if (response.IsSuccess)
+            {
+                model = response.Result;
+                Message = Id > 0 ? "Successfully Updated" : "Successfully Added";
+                TaskCompleted = true;
+            }
+            else
+            {
+                Message = "Error!";
+                MessageBody = response.Message;
+                TaskCompleted = true;
+            }
+
+        }
+        catch (Exception ex)
+        {
+            logger.LogCritical(ex, ex.Message);
+            IsError = true;
+            Message = "Error!";
+            MessageBody = ex.Message;
+            TaskCompleted = true;
+        }
+    }
+
+    private void ResetForm()
+    {
+        show = false;
+        if (Message.Contains("Successfully Added"))
+        {
+            model = new();
+        }
+    }
+    private async void ClosePopUp()
+    {
+        AddAsset = false;
+        assetType = new List<AssetType>(await client.GetAllAssetType());
+        StateHasChanged();
+    }
+    public void OnClose()
+    {
+        NavigationManager.NavigateTo("/assets");
+    }
+
+    public void AssetTypeChange()
+    {
+        model.SubAssetType = null;
+        assetTypeFilter = assetType.Where(o => o.Id == model.AssetTypeId).First();
+    }
+
+
+
+
+}

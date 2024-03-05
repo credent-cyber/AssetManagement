@@ -1,0 +1,28 @@
+﻿@page "/companies"
+@using AssetManagement.Client.Pages.GridComponent
+
+<div class="card">
+    <div class="card-header" style="padding: 8px !important; display: flex; align-items: center;">
+        <MudButton Href="company-config"
+                   Variant="Variant.Outlined"
+                   Color="Color.Tertiary"
+                   Size="Size.Small"
+                   Disabled=false>
+            Add Company
+        </MudButton>
+        <div style="margin-left: auto;">
+            <ol class="breadcrumb" style="display: flex; justify-content: flex-end; align-items: center; list-style: none; padding: 0; margin: 0;">
+                <li class="breadcrumb-item"><a href="/"><i class="fa fa-home" aria-hidden="true"></i></a></li>
+                <li class="breadcrumb-item active">Companies</li>
+            </ol>
+        </div>
+
+    </div>
+    <div class="card-body">
+        <AllCompaniesGrid />
+
+    </div>
+</div>
+@code {
+
+}

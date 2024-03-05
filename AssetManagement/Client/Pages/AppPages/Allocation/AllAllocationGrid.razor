@@ -1,0 +1,128 @@
+﻿@page "/allocations"
+@page "/allocations/{cmp}/{label?}"
+@using AssetManagement.Client.Pages.GridComponent
+@using AssetManagement.Client.Shared.Popup
+@using GridBlazor
+@using GridBlazor.Pages
+@using GridShared
+@using GridShared.Utility
+@using Microsoft.Extensions.Primitives
+@using AssetManagement.Dto
+@using AssetManagement.Dto.Models;
+@inject NavigationManager NavigationManager
+@inject HttpClient HttpClient
+
+<div class="card">
+    <div class="card-header" style="padding: 8px !important; display: flex; align-items: center;">
+        <MudButton Href="allocation-config"
+                   Variant="Variant.Outlined"
+                   Color="MudBlazor.Color.Tertiary"
+                   Size="Size.Small"
+                   Disabled=false>
+            New Allocation
+        </MudButton>
+        <div style="margin-left: auto;">
+            <ol class="breadcrumb" style="display: flex; justify-content: flex-end; align-items: center; list-style: none; padding: 0; margin: 0;">
+                <li class="breadcrumb-item"><a href="/"><i class="fa fa-home" aria-hidden="true"></i></a></li>
+                <li class="breadcrumb-item active">Allocations</li>
+            </ol>
+        </div>
+
+    </div>
+
+    <div class="card-body">
+        @if(cmp != null)
+        {           
+            @if (_task.IsCompleted)
+            {
+                <div class="row">
+                    <div class="col-sm-12">
+                        <GridComponent T="Allocation" Grid="@_grid"></GridComponent>                   
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="col-sm-12" style="margin-top:40vh">
+                    <div class="loading-bar"></div>
+                </div>
+            }
+        }
+        else
+        {
+            <AllocationsGrid />           
+        }
+    </div>
+
+</div>
+@code {
+    [Parameter]
+    public string cmp { get; set; }
+    [Parameter]
+    public string label { get; set; }
+
+    private CGrid<Allocation> _grid;
+    private Task _task;
+    static bool filter = false;
+
+    Action<IGridColumnCollection<Allocation>> columns = c =>
+    {
+        c.Add(o => o.Id).SetWidth("50px").Css("table-bordered").Titled("SN.").Filterable(filter);
+        c.Add(o => o.CompanyCode).SetWidth("50px").Css("table-bordered").Titled("Company").Filterable(filter);
+        c.Add(o => o.Employee.EmployeeName).SetWidth("50px").Css("table-bordered").Titled("Employee").Filterable(filter);
+        c.Add(o => o.Employee.CompanyCode).SetWidth("50px").Css("table-bordered").Titled("EmployeeCompany").Filterable(filter);
+        c.Add(o => o.AssetType).SetWidth("50px").Css("table-bordered").Titled("Type").Filterable(filter);
+        c.Add(o => o.Asset.Model).SetWidth("50px").Css("table-bordered").Titled("Asset").Filterable(filter);
+        c.Add(o => o.AssetModel).Css("table-bordered").Titled("Asset").Filterable(filter);
+        c.Add(o => o.AllocationType).SetWidth("50px").Css("table-bordered").Titled("Allocation").Filterable(filter);
+        c.Add(o => o.IssueDate).Format("{0:dd/MM/yyyy}").SetWidth("50px").Css("table-bordered").Filterable(filter);
+        c.Add(o => o.IssueTill).Format("{0:dd/MM/yyyy}").SetWidth("50px").Css("table-bordered").Filterable(filter);
+        c.Add(o => o.ReturnDate).Format("{0:dd/MM/yyyy}").SetWidth("50px").Css("table-bordered").Filterable(filter);
+        c.Add(o => o.Responce).SetWidth("50px").Css("table-bordered").Filterable(filter);
+        c.Add(o => o.Comment).SetWidth("50px").Css("table-bordered").Filterable(filter);
+
+    };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        string url = $"odata/Allocation";
+        var query = new QueryDictionary<StringValues>();
+        //query.Add("grid-sorting", "Id__1__1");
+        if (cmp != null)
+        {
+            if (label == "Permanent Allocation")
+            {
+                var values = new string[] { $"AllocationType__1__{"Permanent"}", $"CompanyCode__1__{cmp}" };
+                query.Add("grid-filter", new StringValues(values));
+            }
+
+            else if (label == "Temporary Allocation")
+            {
+                var values = new string[] { $"AllocationType__1__{"Temporary"}", $"CompanyCode__1__{cmp}" };
+                query.Add("grid-filter", new StringValues(values));
+            }
+            else
+            {
+                var values = new string[] { $"CompanyCode__1__{cmp}" };
+                query.Add("grid-filter", new StringValues(values));
+            }
+        }
+
+        var client = new GridODataClient<Allocation>(HttpClient, url, query, false, "AllocationGrid", columns, 10)
+            .Sortable(false)
+            .Filterable(false)
+            .ClearFiltersButton(true)
+            .SetStriped(true)
+            .WithGridItemsCount()
+            .SetExcelExport(true, true, "Allocation.xlsx")
+            .ChangePageSize(true)
+            .EmptyText("No data available")
+            .SetKeyboard(true)
+            .Searchable(true, false, false);
+
+        _grid = client.Grid;
+        _task = client.UpdateGrid();
+        await _task;
+    }
+
+}

@@ -1,0 +1,350 @@
+﻿@page "/AssetTransfer"
+@using AssetManagement.Client.Client;
+@using AssetManagement.Client.Pages.AppPages.Employees.Component
+@using AssetManagement.Client.Shared.Popup
+@using AssetManagement.Dto.Models
+@using AssetManagement.Dto;
+@using System.Text.Json
+@using System.Text.RegularExpressions;
+@inject AppClient client
+@inject HttpClient _httpClient
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@attribute [Authorize]
+
+<div>
+    <div class="card">
+        <div class="card-header bg-secondary text-center">
+            @Title
+        </div>
+        <div class="form-group row mb-2 p-2">
+
+            <EditForm Model="model">
+                <div class="form-group row" style="padding:4px">
+                    <div class="col-md-4">
+                        <MudGrid>
+                            <MudItem xs="12" sm="12" md="12">
+                                <MudAutocomplete T="Company" Label="Sourece Company" @bind-Value="selectedSourceCompany" SearchFunc="@SourceCompanySearch" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                 ToStringFunc="@(e => e == null ? null : $"{e.Name} ({e.CompanyCode})")"
+                                                 Required="false"
+                                                 ResetValueOnEmptyText="true"
+                                                 CoerceText="true"
+                                                 CoerceValue="true"
+                                                 MaxItems="null">
+                                </MudAutocomplete>
+                            </MudItem>
+                        </MudGrid>
+                        <span style="color:red; padding-left: 1px">@ErrorSourceCompany</span>
+                        @if (selectedSourceCompany == null)
+                        {
+                            selectedAsset = null; selectedTargetCompany = null; model = new();
+                            ErrorSourceCompany = string.Empty;
+                            ErrorSourceAsset = string.Empty;
+                            ErrorTargetCompany = string.Empty;
+                        }
+                    </div>
+                    <div class="col-md-4">
+                        <MudGrid>
+                            <MudItem xs="12" sm="6" md="12">
+                                <MudAutocomplete T="Asset" Label="Select Asset" @bind-Value="selectedAsset" SearchFunc="@AssetSearch" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                 ToStringFunc="@(e => e == null ? null : $"{e.Brand} - {e.Model} (SN - {e.SerialNumber})")"
+                                                 Required="false"                                               
+                                                 ResetValueOnEmptyText="true"
+                                                 CoerceText="true"
+                                                 CoerceValue="true"
+                                                 MaxItems="null">
+                                </MudAutocomplete>
+                            </MudItem>
+                        </MudGrid>
+                        <span style="color:red; padding-left: 1px">@ErrorSourceAsset</span>
+                        @if (selectedAsset != null) { OnAsseteChange(selectedAsset); } else { model = new(); }
+                    </div>
+                    <div class="col-md-4">
+                        <MudGrid>
+                            <MudItem xs="12" sm="12" md="12">
+                                <MudAutocomplete T="Company" Label="Target Company" @bind-Value="selectedTargetCompany" SearchFunc="@TargetCompanySearch" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                 ToStringFunc="@(e => e == null ? null : $"{e.Name} ({e.CompanyCode})")"
+                                                 Required="false"
+                                                 ResetValueOnEmptyText="true"
+                                                 CoerceText="true"
+                                                 CoerceValue="true"
+                                                 MaxItems="null">
+                                </MudAutocomplete>
+                            </MudItem>
+                        </MudGrid>
+                        <span style="color:red; padding-left: 1px">@ErrorTargetCompany</span>
+                    </div>
+                </div>
+
+                <div class="card form-group row mb-2 m-1 mt-2" style="">
+                    <div class="form-group row mb-2">
+                        <label class="col-form-label col-md-2 bold-font">Company Code : </label>
+                        <div class="col-md-4 mt-1">
+                            <span class="text-info">@model.CompanyCode</span>
+                        </div>
+
+                        <label class="col-form-label col-md-2 bold-font">Asset Type : </label>
+                        <div class="col-md-4 mt-1">
+                            <span class="text-info">@model.AssetType</span>
+                        </div>
+                    </div>
+                    <div class="form-group row mb-2">
+
+                        <label class="col-form-label col-md-2 bold-font">Make : </label>
+                        <div class="col-md-4 mt-1">
+                            <span class="text-info">@model.Brand</span>
+                        </div>
+
+                        <label class="col-form-label col-md-2 bold-font">Model : </label>
+                        <div class="col-md-4 mt-1">
+                            <span class="text-info">@model.Model</span>
+                            
+                        </div>
+                    </div>
+                    <div class="form-group row mb-2">
+                        <label class="col-form-label col-md-2 bold-font">Serial No : </label>
+                        <div class="col-md-4 mt-1">
+                            <span class="text-info">@model.SerialNumber</span>
+                        </div>
+
+                        <label class="col-form-label col-md-2 bold-font">MacAddress : </label>
+                        <div class="col-md-4 mt-1">
+                            <span class="text-info">@model.MacAddress</span>
+                        </div>
+                    </div>
+                  
+                    <div class="form-group row mb-2">
+                        <label class="col-form-label col-md-2 bold-font">Descriptions : </label>
+                        <div class="col-md-10 mt-1">
+                            <span class="text-info">@model.Description</span>
+                        </div>
+                    </div>
+                    <div style="text-align:center;" class="mt-4 fixed-div">
+                        <button type="button" @onclick="Back" class="btn btn-secondary col-md-2 mr-1"><i class="fa fa-arrow-left" aria-hidden="true"></i> Back</button>
+                        <button type="button" @onclick="Validate" class="btn btn-primary col-md-2 mr-1">Transfer <i class="fa fa-arrow-right" aria-hidden="true"></i></button>
+                    </div>
+                </div>
+            </EditForm>
+
+
+            <SimpleDailog Title="@Message" Show="@show" OnCloseDialog="ResetForm">
+                @if (show)
+                {
+                    @if (!TaskCompleted && !process)
+                    {
+                        @*<div class="form-group mb-2">
+                            <label for="email" class="bold-font required-field">New EmployeeID:</label>
+                            <input type="text" class="form-control" @bind-value="NewEmployeeID">
+                            <span style="color:red">@NewEmployeeIDErrorMessage</span>
+                        </div>
+                        <div class="form-group mb-2">
+                            <label for="email" class="bold-font required-field">New Email of Employee:</label>
+                            <input type="email" class="form-control" id="email" @bind-value="NewEmailOfEmployee">
+                            <span style="color:red">@ErrorMessage</span>
+                        </div>*@
+                        <div class="form-group mb-2">
+                            <span style="color:black">Click Go Button to continue the process</span>
+                        </div>
+                        <div style="text-align:center;" class="mt-4">
+                            <button type="button" @onclick="OnValidSubmit" class="btn btn-primary col-md-6">Go <i class="fa fa-arrow-right" aria-hidden="true"></i></button>
+                        </div>
+                    }        
+                    else if (TaskCompleted && process)
+                    {
+                        <div style="text-align:center;">
+                            @MessageBody
+                        </div>
+                        <div style="text-align:center;" class="mt-4">
+                            <button type="button" @onclick="ResetForm" class="btn btn-outline-secondary col-md-6">Close</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="text-align:center">
+                            <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+                        </div>
+                    }
+                }
+            </SimpleDailog>
+
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool show = false;
+    private bool unallocate = false;
+    bool process = false;
+    bool TaskCompleted = false;
+
+    string Message = "Process";
+    string MessageBody = "Thank you!";
+    string ErrorMessage = string.Empty;
+    string ReturnDateValidation = string.Empty;
+
+    string NewEmployeeID = string.Empty;
+    string NewEmailOfEmployee = string.Empty;
+    string ErrorSourceCompany = string.Empty;
+    string ErrorSourceAsset = string.Empty;
+    string ErrorTargetCompany = string.Empty;
+    string NewEmployeeIDErrorMessage = string.Empty;
+
+    List<Company> company = new();
+    List<Asset> asset = new();
+    Asset model = new();
+    AssetTransferModel assetTransfer = new();
+    string Title = "Asset Transfer";
+    protected override async Task OnInitializedAsync()
+    {
+        var BaseUri = NavigationManager.BaseUri;
+        company = new List<Company>(await client.GetAllCompany());
+        asset = new List<Asset>(await client.GetAllAsset());
+    }
+
+    public void Validate()
+    {
+        ErrorSourceCompany = string.Empty;
+        ErrorSourceAsset = string.Empty;
+        ErrorTargetCompany = string.Empty;
+        if (selectedSourceCompany == null)
+        {
+            ErrorSourceCompany = "This Field is required";
+            return;
+        }
+        if (selectedAsset == null)
+        {
+            ErrorSourceAsset = "This Field is required";
+            return;
+        }
+        if (selectedTargetCompany == null)
+        {
+            ErrorTargetCompany = "This Field is required";
+            return;
+        }
+        //if (selectedAsset.IsEngazed)
+        //{
+        //    ErrorSourceAsset = "This Asset has been Allocated,please unallocate first!";
+        //    return;
+        //}
+
+
+        show = true;
+    }
+
+    protected async Task OnValidSubmit()
+    {
+        process = false;
+        Message = "Process";
+        MessageBody = "Thank you!";
+        NewEmployeeIDErrorMessage = string.Empty;
+        ErrorMessage = string.Empty;
+        show = true;
+        TaskCompleted = false;
+
+        try
+        {
+            process = true;
+            //if (NewEmailOfEmployee == "")
+            //{
+            //    ErrorMessage = "New Email is required!";
+            //    return;
+            //}            
+            //if (NewEmployeeID == "")
+            //{
+            //    NewEmployeeIDErrorMessage = "New EmployeeID is required!";
+            //    return;
+            //}
+            //if (!Regex.IsMatch(NewEmailOfEmployee, ImportEmployeeConfig.EmailRegex))
+            //{
+            //    ErrorMessage = "Invalid EmailID!";
+            //    return;
+            //}
+
+            assetTransfer.AssetID = selectedAsset.Id;
+            assetTransfer.SourceCompanyCode = selectedSourceCompany.CompanyCode;
+            assetTransfer.TargetCompanyCode = selectedTargetCompany.CompanyCode;
+            assetTransfer.TargetCompanyId = selectedTargetCompany.Id;
+
+            var responce = await client.AssetTransfer(assetTransfer);
+            MessageBody = responce.Message;
+            Message = "Completed";
+            TaskCompleted = true;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+
+        }
+    }
+
+    private async void ResetForm()
+    {
+        show = false;
+        TaskCompleted = false;
+        process = false;
+        if (Message.Contains("Completed"))
+        {
+            model = new();
+        }
+        selectedAsset = null;
+        selectedSourceCompany = null;
+        selectedTargetCompany = null;
+    }
+
+
+
+    private void OnAsseteChange(Asset asset)
+    {
+        model = asset;
+    }
+
+    private Company? selectedSourceCompany { get; set; }
+    private async Task<IEnumerable<Company>> SourceCompanySearch(string value)
+    {
+        await Task.Delay(5);
+        if (string.IsNullOrEmpty(value))
+            return company;
+        return company
+        .Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase) ||
+        x.CompanyCode.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+
+    private Asset? selectedAsset { get; set; }
+    private async Task<IEnumerable<Asset>> AssetSearch(string value)
+    {
+
+        await Task.Delay(5);
+        if (selectedSourceCompany.Equals(null))
+        {
+            return null;
+        }
+        if (string.IsNullOrEmpty(value))
+            return asset.Where(o => o.CompanyCode == selectedSourceCompany.CompanyCode && o._AssetStatus == AssetStatus.Active);
+
+        return asset.Where(o => o.CompanyCode == selectedSourceCompany.CompanyCode && o._AssetStatus == AssetStatus.Active)
+            .Where(x => x.Model.Contains(value, StringComparison.InvariantCultureIgnoreCase) || x.SerialNumber.Contains(value, StringComparison.InvariantCultureIgnoreCase)
+            || x.Brand.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    private Company? selectedTargetCompany { get; set; }
+    private async Task<IEnumerable<Company>> TargetCompanySearch(string value)
+    {
+        await Task.Delay(5);
+        if (string.IsNullOrEmpty(value) && selectedSourceCompany != null)
+            return company.Where(o => o.CompanyCode != selectedSourceCompany.CompanyCode);
+        if (string.IsNullOrEmpty(value) && selectedSourceCompany != null)
+        {
+            return company
+            .Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase) ||
+            x.CompanyCode.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+        }
+        else
+            return null;
+    }
+
+    public void Back()
+    {
+        NavigationManager.NavigateTo("/assets");
+    }
+}

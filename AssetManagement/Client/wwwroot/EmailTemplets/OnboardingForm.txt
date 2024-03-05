@@ -1,0 +1,39 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+
+</head>
+<body>
+   Dear <b><CandidateName></b>,
+   <br/>  <br/>
+ 
+
+We are thrilled to extend a warm welcome to you as the newest member of the <b><CompanyName></b> team! We are excited to have you on board and look forward to your contributions to our organization.
+  <br/>  <br/>
+To ensure a smooth onboarding process and to gather essential information, we kindly request that you complete our onboarding form. This form will help us gather necessary details to set up your employee profile and make necessary arrangements for your first day.
+  <br/>  <br/>
+Please find the link to the onboarding form provided below:
+   <br/>  <br/>
+
+ <a href="<###RETURN_URL###>">Click Here</a>
+
+   <br/>  <br/>
+
+The form consists of a series of questions related to your personal information, emergency contacts, tax and payroll details, and any special requirements you may have. It should only take a few minutes to complete, and your responses will be treated with the utmost confidentiality.
+  <br/>  <br/>
+We kindly ask you to submit the completed onboarding form at your earliest convenience, preferably within this week. This will enable us to prepare for your arrival and ensure a seamless integration into our organization.
+  <br/>  <br/>
+If you have any questions or encounter any issues while completing the form, please do not hesitate to reach out to our HR department at <b>9971866134</b>. We are here to assist you and provide any necessary guidance throughout the onboarding process.
+  <br/>  <br/>
+Once again, welcome to <CompanyName>! We are excited to have you join our team and are confident that you will make valuable contributions to our organization. We look forward to meeting you in person on your first day.
+  <br/>
+  <br/>
+
+Warm regards,
+  <br/>  <br/>
+ 
+
+Keshav Thakur
+  <br/>
+</body>
+</html>
