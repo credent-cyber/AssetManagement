@@ -1,0 +1,84 @@
+﻿/* HTML: <div class="loader"></div> */
+/*<div class="loader-container" ><div class="loader" > </div ></div >*/
+
+
+.loader-container {
+    position: relative; /* Container's position is relative */
+    width: 100%; /* Adjust as needed */
+    height: 100%; /* Adjust as needed */
+}
+
+.loader {
+    width: 120px;
+    height: 22px;
+    border-radius: 40px;
+    color: #514b82;
+    border: 2px solid;
+    position: absolute; /* Loader's position is absolute */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Centering the loader */
+    overflow: hidden;
+}
+
+    .loader::before {
+        content: "";
+        position: absolute;
+        margin: 2px;
+        width: 14px;
+        top: 0;
+        bottom: 0;
+        left: -20px;
+        border-radius: inherit;
+        background: currentColor;
+        box-shadow: -10px 0 12px 3px currentColor;
+        clip-path: polygon(0 5%, 100% 0,100% 100%,0 95%,-30px 50%);
+        animation: l14 1s infinite linear;
+    }
+
+@keyframes l14 {
+    100% {
+        left: calc(100% + 20px);
+    }
+}
+
+/**/
+
+/* HTML: <div class="loader2"></div> */
+.loader2 {
+    width: 40px;
+    height: 40px; /* Ensuring a square shape */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    aspect-ratio: 1;
+    --c: linear-gradient(#695cfe 0 0); /* Changed color to #695cfe */
+    --r1: radial-gradient(farthest-side at bottom,#695cfe 93%,#0000);
+    --r2: radial-gradient(farthest-side at top,#695cfe 93%,#0000);
+    background: var(--c),var(--r1),var(--r2), var(--c),var(--r1),var(--r2), var(--c),var(--r1),var(--r2);
+    background-repeat: no-repeat;
+    animation: l2 1s infinite alternate;
+}
+
+@keyframes l2 {
+    0%,25% {
+        background-size: 8px 0,8px 4px,8px 4px,8px 0,8px 4px,8px 4px,8px 0,8px 4px,8px 4px;
+        background-position: 0 50%,0 calc(50% - 2px),0 calc(50% + 2px),50% 50%,50% calc(50% - 2px),50% calc(50% + 2px),100% 50%,100% calc(50% - 2px),100% calc(50% + 2px);
+    }
+
+    50% {
+        background-size: 8px 100%,8px 4px,8px 4px,8px 0,8px 4px,8px 4px,8px 0,8px 4px,8px 4px;
+        background-position: 0 50%,0 calc(0% - 2px),0 calc(100% + 2px),50% 50%,50% calc(50% - 2px),50% calc(50% + 2px),100% 50%,100% calc(50% - 2px),100% calc(50% + 2px);
+    }
+
+    75% {
+        background-size: 8px 100%,8px 4px,8px 4px,8px 100%,8px 4px,8px 4px,8px 0,8px 4px,8px 4px;
+        background-position: 0 50%,0 calc(0% - 2px),0 calc(100% + 2px),50% 50%,50% calc(0% - 2px),50% calc(100% + 2px),100% 50%,100% calc(50% - 2px),100% calc(50% + 2px);
+    }
+
+    95%,100% {
+        background-size: 8px 100%,8px 4px, 8px 4px,8px 100%,8px 4px,8px 4px,8px 100%,8px 4px,8px 4px;
+        background-position: 0 50%,0 calc(0% - 2px),0 calc(100% + 2px),50% 50%,50% calc(0% - 2px),50% calc(100% + 2px),100% 50%,100% calc(0% - 2px),100% calc(100% + 2px);
+    }
+}

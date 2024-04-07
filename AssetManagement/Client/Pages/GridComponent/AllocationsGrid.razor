@@ -20,8 +20,8 @@
 }
 else
 {
-    <div class="col-sm-12" style="margin-top:40vh">
-        <div class="loading-bar"></div>
+    <div class="loader-container mt-4">
+        <div class="loader"></div>
     </div>
 }
 
@@ -67,7 +67,7 @@ else
             .SetStriped(true)
             .WithMultipleFilters()
             .WithGridItemsCount()
-            .SetExcelExport(true,true, "Allocation.xlsx")
+            .SetExcelExport(true,true, "Allocations")
             .ChangePageSize(true)
             .EmptyText("No data available")
             .SetKeyboard(true)

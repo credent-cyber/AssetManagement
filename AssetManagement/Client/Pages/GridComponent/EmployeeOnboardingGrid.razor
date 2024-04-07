@@ -58,7 +58,8 @@
 else
 {
     <div class="col-sm-12" style="margin-top:40vh">
-        <div class="loading-bar"></div>
+        @* <div class="loading-bar"></div> *@
+        <div class="loader"></div>
     </div>
 }
 <Dailog Title="@Message" Show="@show" OnCloseDialog="ResetForm">
@@ -72,8 +73,8 @@ else
         }
         else
         {
-            <div style="text-align:center">
-                <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+            <div class="loader-container mt-4">
+                <div class="loader"></div>
             </div>
         }
     }
@@ -114,7 +115,7 @@ else
             .SetStriped(true)
             .WithMultipleFilters()
             .WithGridItemsCount()
-            .SetExcelExport(true, true, "Onboarding.xlsx")
+            .SetExcelExport(true, true, "Onboardings")
             .ChangePageSize(true)
             .EmptyText("No data available")
             .SetKeyboard(true)
