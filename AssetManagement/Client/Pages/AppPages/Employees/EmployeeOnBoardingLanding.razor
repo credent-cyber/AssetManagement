@@ -426,10 +426,11 @@
                 </MudExpansionPanels>
 
 
-                <div style="text-align:center;" class="mt-4">
-                    <button type="submit" class="btn btn-success col-md-2">Submit</button>
-                    <button type="button" class="btn btn-danger col-md-2" @onclick="OnClose">Close</button>
-                    <button type="button" class="btn btn-info col-md-2" @onclick="OnDraft">Save</button>
+                <div style="text-align:center;" class="mt-4 btn-group flex-wrap">
+                    <button type="submit" class="btn btn-success mr-1 mb-1">Submit</button>
+                    <button type="button" class="btn btn-danger mr-1 mb-1" @onclick="OnClose">Close</button>
+                    <button type="button" class="btn btn-info mr-1 mb-1" @onclick="OnDraft">Save</button>
+                    <button type="button" class="btn btn-secondary mr-1 mb-1" @onclick="OnClearCookie">Clear Cookie</button>
                 </div>
             </EditForm>
         }
@@ -599,7 +600,7 @@
             validate = false;
             company = new List<Company>(await client.GetAllCompany());
         }
-        
+
 
         var responce = param == null ? await client.GetOnboardingDataByKey(key) : await client.GetOnboardingDataById(key);
         SkillOptions = new List<EmployeeSkills>(await client.GetAllSkill());
@@ -636,7 +637,7 @@
             MessageBody = responce.Message;
             TaskCompleted = true;
         }
-       
+
     }
     protected async Task OnValidSubmit()
     {
@@ -766,6 +767,63 @@
             await JSRuntime.InvokeVoidAsync("blazorCloseTab");
         }
 
+    }
+    private async void OnClearCookie()
+    {
+        Message = string.Empty;
+        MessageBody = "Thank you!";
+        IsError = false;
+        IsSuccess = false;
+        TaskCompleted = false;
+        Message = "Please wait";
+        try
+        {
+            show = true;
+            await _localstorage.RemoveItemAsync("model"); //clear saved local storage data of key model
+            if (param != null)
+            {
+                validate = false;
+                company = new List<Company>(await client.GetAllCompany());
+            }
+
+
+            var responce = param == null ? await client.GetOnboardingDataByKey(key) : await client.GetOnboardingDataById(key);
+            SkillOptions = new List<EmployeeSkills>(await client.GetAllSkill());
+
+            if (responce.IsSuccess)
+            {
+                model = responce.Result;
+                TaskCompleted = true;
+
+                if (model.SkillIDs != "")
+                    SelectedSkill = new List<int>(Array.ConvertAll(model.SkillIDs.Split(','), int.Parse));
+
+                if (model.AadhaarFile != "")
+                    AdharView = $"{BaseUri}EmployeesZone/{model.AadhaarFile}";
+                if (model.PanFile != "")
+                    PanView = $"{BaseUri}EmployeesZone/{model.PanFile}";
+                if (model.BankPassbookFile != "")
+                    BankPassView = $"{BaseUri}EmployeesZone/{model.BankPassbookFile}";
+                if (model.CertificateFile != "")
+                    CertificateView = $"{BaseUri}EmployeesZone/{model.CertificateFile}";
+                if (model.ProfilePhotoFile != "")
+                    ProfilePicView = $"{BaseUri}EmployeesZone/{model.ProfilePhotoFile}";
+            }
+            Message = "Data Cleared!";
+            TaskCompleted = true;
+
+        }
+        catch (Exception ex)
+        {
+            IsError = true;
+            Message = "Error!";
+            MessageBody = ex.Message;
+            TaskCompleted = true;
+        }
+        finally
+        {
+            StateHasChanged();
+        }
     }
 
     public async void OnClose()
