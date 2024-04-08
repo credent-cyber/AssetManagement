@@ -73,5 +73,44 @@ namespace AssetManagement.Client.States
         {
             return await _authorizeApi.GetRoles();
         }
+
+        public async Task<(bool, string)> ChangePassword(ResetPassword resetPassword)
+        {
+            try
+            {
+                await _authorizeApi.ChangePassword(resetPassword);
+                return (true, "Success");
+            }
+            catch (Exception ex)
+            {
+                return (false, ex.Message);
+            }
+        }
+
+        public async Task<(bool, string)> UpdateUserDetails(UserDetailsUpdateParameters updateParametersd)
+        {
+            try
+            {
+                await _authorizeApi.UpdateUserDetails(updateParametersd);
+                return (true, "Success");
+            }
+            catch (Exception ex)
+            {
+                return (false, ex.Message);
+            }
+        }
+
+        public async Task<(bool, string)> RequestPasswordResetByEmail(ResetPasswordByAdmin Parameters)
+        {
+            try
+            {
+                await _authorizeApi.RequestPasswordResetByEmail(Parameters);
+                return (true, "Success");
+            }
+            catch (Exception ex)
+            {
+                return (false, ex.Message);
+            }
+        }
     }
 }

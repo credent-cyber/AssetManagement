@@ -17,5 +17,8 @@ namespace AssetManagement.Client.Services.Contracts
         Task UpdateUserRole(UserViewModel userViewModel);
         Task<int> GetUserCount();
         Task<List<string>> GetRoles();
+        Task ChangePassword(ResetPassword resetPassword);
+        Task UpdateUserDetails(UserDetailsUpdateParameters updateParameters);
+        Task RequestPasswordResetByEmail(ResetPasswordByAdmin Parameters);
     }
 }

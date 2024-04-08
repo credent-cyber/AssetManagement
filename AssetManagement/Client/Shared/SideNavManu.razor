@@ -13,7 +13,10 @@
                 <span class="name" style="font-size:16px; font-weight: 800;">AssetManagement</span>
                 <AuthorizeView>
                     <Authorized>
-                        <span class="profession" style="font-size:12px;">@context.User.Identity.Name</span>
+                        <span class="profession" style="font-size:12px;">
+                            @context.User.Identity.Name
+                            <a href="profile" style="margin-left:2px;"> <i class="fa fa-pencil" aria-hidden="true"></i></a>
+                        </span>
                     </Authorized>
                 </AuthorizeView>
             </div>
@@ -21,14 +24,15 @@
 
         <a class='bx bx-chevron-right toggle' @onclick="toggleSideManu"></a>
     </header>
+    <hr style="margin-bottom:0" class="" />
 
     <div class="menu-bar">
         <div class="menu">
 
-            <li class="search-box">
+           @*  <li class="search-box">
                 <i class='bx bx-search icon'></i>
                 <input type="text" placeholder="Search...">
-            </li>
+            </li> *@
 
             <ul class="menu-links">
                 <li class="">
@@ -83,6 +87,7 @@
             </ul>
         </div>
 
+        <hr style="margin-bottom:0" class="" />
         <div class="bottom-content">
             <li class="">
                 <a @onclick="LogoutClick" style="cursor:pointer">

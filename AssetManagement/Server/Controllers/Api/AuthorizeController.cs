@@ -107,10 +107,27 @@ namespace AssetManagement.Server.Controllers.Api
         }
 
         [HttpGet]
-        public UserInfo UserInfo()
+        [Authorize]
+        public async Task<IActionResult> UserInfo()
         {
-            //var user = await _userManager.GetUserAsync(HttpContext.User);
-            return BuildUserInfo();
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+            if (user == null)
+            {
+                return BadRequest("User not found");
+            }
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+
+            var userInfo = new UserInfo
+            {
+                IsAuthenticated = User.Identity.IsAuthenticated,
+                UserName = user.UserName,
+                ExposedClaims = User.Claims
+                    .ToDictionary(c => c.Type, c => c.Value),
+                Roles = userRoles.ToList(),
+            };
+
+            return Ok(userInfo);
         }
 
 
@@ -199,6 +216,125 @@ namespace AssetManagement.Server.Controllers.Api
         {
             var roles = _roleManager.Roles.Select(r => r.Name).ToList();
             return Ok(roles);
+        }
+
+        /////////
+        ///
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> ChangePassword(ResetPassword resetPassword)
+        {
+            try
+            {
+                var user = await _userManager.GetUserAsync(HttpContext.User);
+
+                if (user == null)
+                {
+                    return BadRequest("User not found");
+                }
+
+                // Check if the current password is correct
+                var passwordCheck = await _userManager.CheckPasswordAsync(user, resetPassword.CurrentPassword);
+                if (!passwordCheck)
+                {
+                    return BadRequest("Invalid current password");
+                }
+
+                // Change the user's password
+                var changePasswordResult = await _userManager.ChangePasswordAsync(user, resetPassword.CurrentPassword, resetPassword.NewPassword);
+
+                if (changePasswordResult.Succeeded)
+                {
+                    return Ok("Password changed successfully");
+                }
+                else
+                {
+                    return BadRequest("Failed to change password");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the exception or handle it accordingly
+                return BadRequest($"Failed to change password: {ex.Message}");
+            }
+        }
+
+
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> UpdateUserDetails(UserDetailsUpdateParameters updateParameters)
+        {
+            try
+            {
+                var user = await _userManager.GetUserAsync(HttpContext.User);
+
+                if (user == null)
+                {
+                    return BadRequest("User not found");
+                }
+
+                // Update username and email if provided
+                if (!string.IsNullOrEmpty(updateParameters.NewUserName))
+                {
+                    user.UserName = updateParameters.NewUserName;
+                }
+
+                if (!string.IsNullOrEmpty(updateParameters.NewEmail))
+                {
+                    // Check if the new email is unique
+                    var existingUserWithEmail = await _userManager.FindByEmailAsync(updateParameters.NewEmail);
+                    if (existingUserWithEmail != null && existingUserWithEmail.Id != user.Id)
+                    {
+                        return BadRequest("Email is already in use by another user");
+                    }
+
+                    user.Email = updateParameters.NewEmail;
+                }
+
+                // Update the user in the database
+                var updateResult = await _userManager.UpdateAsync(user);
+
+                if (updateResult.Succeeded)
+                {
+                    return Ok("User details updated successfully");
+                }
+                else
+                {
+                    return BadRequest(updateResult.Errors.FirstOrDefault()?.Description ?? "Failed to update user details");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the exception or handle it accordingly
+                return BadRequest($"Failed to update user details: {ex.Message}");
+            }
+        }
+
+
+        [HttpPost]
+        [Authorize]
+        //[Authorize(Roles = "Admin")] // Ensure only admins can access this endpoint
+        public async Task<IActionResult> RequestPasswordResetByEmail(ResetPasswordByAdmin resetPasswordByAdmin)
+        {
+            var user = await _userManager.FindByEmailAsync(resetPasswordByAdmin.Email);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var result = await _userManager.ResetPasswordAsync(user, token, resetPasswordByAdmin.NewPassword);
+
+            if (result.Succeeded)
+            {
+                return Ok("Password reset successfully");
+            }
+            else
+            {
+                // Failed to reset password, handle errors
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                return BadRequest($"Failed to reset password: {errors}");
+            }
         }
 
     }

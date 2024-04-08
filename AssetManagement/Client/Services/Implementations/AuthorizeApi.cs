@@ -85,5 +85,52 @@ namespace AssetManagement.Client.Services.Implementations
             return result;
         }
 
+        public async Task ChangePassword(ResetPassword resetPassword)
+        {
+            var result = await _httpClient.PostAsJsonAsync("api/Authorize/ChangePassword", resetPassword);
+            if (result.StatusCode == System.Net.HttpStatusCode.BadRequest)
+            {
+                throw new Exception(await result.Content.ReadAsStringAsync());
+            }
+
+            result.EnsureSuccessStatusCode();
+        }
+        public async Task UpdateUserDetails(UserDetailsUpdateParameters updateParameters)
+        {
+            try
+            {
+                var result = await _httpClient.PostAsJsonAsync("api/Authorize/UpdateUserDetails", updateParameters);
+                if (result.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    throw new Exception(await result.Content.ReadAsStringAsync());
+                }
+
+                result.EnsureSuccessStatusCode();
+            }
+            catch (Exception ex)
+            {
+                // Log the exception or handle it accordingly
+                throw new Exception($"Failed to update user details: {ex.Message}");
+            }
+        }
+
+        public async Task RequestPasswordResetByEmail(ResetPasswordByAdmin Parameters)
+        {
+            try
+            {
+                var result = await _httpClient.PostAsJsonAsync("api/Authorize/RequestPasswordResetByEmail", Parameters);
+                if (result.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    throw new Exception(await result.Content.ReadAsStringAsync());
+                }
+
+                result.EnsureSuccessStatusCode();
+            }
+            catch (Exception ex)
+            {
+                // Log the exception or handle it accordingly
+                throw new Exception($"Failed to reset the password: {ex.Message}");
+            }
+        }
     }
 }
