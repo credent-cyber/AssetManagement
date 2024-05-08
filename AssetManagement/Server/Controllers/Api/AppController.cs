@@ -7,6 +7,7 @@ using AssetManagement.Server.EmailService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using static MudBlazor.CategoryTypes;
 
 namespace AssetManagement.Server.Controllers.Api
 {
@@ -346,6 +347,58 @@ namespace AssetManagement.Server.Controllers.Api
             return result;
         }
 
+        [AllowAnonymous]
+        [HttpGet("/tracking")]
+        public async Task<IActionResult> TrackEmailOpen([FromQuery] string id, [FromQuery] string email)
+        {
+            return Ok();
+        }
+
+        [HttpPost]
+        [Route("CreateEmailRequest")]
+        public async Task<ApiResponse<CreateEmailRequest>> CreateEmailRequest(CreateEmailRequest createEmailRequest)
+        {
+            var result = new ApiResponse<CreateEmailRequest>();
+
+            string path;
+            //var RawContents = System.IO.File.ReadAllText($"{System.IO.Directory.GetCurrentDirectory()}{path}");
+#if DEBUG
+            path = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName + "\\AssetManagement\\Client\\wwwroot\\EmailTemplets\\TableTemplate.txt";
+#else
+                path = Path.Combine(_env.ContentRootPath, "wwwroot", "EmailTemplets/TableTemplate.txt");
+#endif
+            string mailTo = _configuration.GetValue<string>("AdminEmail");
+            string Subject = "AssetManagement Application Employee Form Details";
+            string link = createEmailRequest.LandingUrl.Replace("emp", "emp/mailupdate");
+            try
+            {
+                // Construct the tracking URL
+                string trackingUrl = $"https://localhost:7053/api/App/tracking?id=88&email={mailTo}";
+
+                // Modify the email body to include the tracking URL
+                string body = $@"Hi, Please create an email for the below user and update from <a href=""{link}"">here</a>.
+                <br/><br/>
+                CompanyCode: {createEmailRequest.CompanyCode}<br/>
+                Name: {createEmailRequest.Name}<br/>
+                EmployeeID: {createEmailRequest.EmployeeID}<br/><br/>
+                Thank You.
+                <br/><br/>
+                <img src=""{trackingUrl}"" alt=""tracking pixel"" width=""1"" height=""1"" style=""display:none;"">";
+                await _mailService.SendEmailAsync("chhagan.sinha@credentinfotech.com", Subject, body);
+                result.IsSuccess = true;
+                result.Message = $"Sent";
+
+
+            }
+            catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.Message = ex.Message;
+            }
+
+
+            return result;
+        }
 
         [HttpDelete]
         [Route("DeleteEmployee/{id}")]

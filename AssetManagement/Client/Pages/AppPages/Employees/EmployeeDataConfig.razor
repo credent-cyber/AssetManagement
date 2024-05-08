@@ -17,6 +17,7 @@
 @attribute [Authorize]
 @inject IDialogService Dialog
 
+
 <div>
     <div class="card mb-4">
         <div class="card-header bg-secondary text-center">
@@ -77,11 +78,17 @@
                             <InputText id="fatherName" @bind-Value="model.fatherName" class="form-control" />
                             <ValidationMessage For="() => model.fatherName" />
                         </div>
+                    </div>
 
-                        <label class="col-form-label col-md-1 bold-font required-field">Email</label>
-                        <div class="col-md-3">
+                    <div class="form-group row mb-2">
+                        <label class="col-form-label col-md-2 bold-font required-field">Email</label>
+                        <div class="col-md-6">
                             <InputText id="EmailId" @bind-Value="model.EmailId" class="form-control" />
                             <ValidationMessage For="() => model.EmailId" />
+                        </div>
+                        <div class="col-md-1"></div>
+                        <div class="col-md-3">
+                            <button type="button" style="width:100%" @onclick="()=>EmailRequest = !EmailRequest" class="btn btn-primary">Create Email Request</button>
                         </div>
                     </div>
 
@@ -213,7 +220,7 @@
                                            AutoSort="false"
                                            TValue="int"
                                            Data="@SkillOptions"
-                            @bind-Value="@SelectedSkill"
+                                           @bind-Value="@SelectedSkill"
                                            TextSelector="@(p => p.Skill)"
                                            ValueSelector="@(p => p.Id)"
                                            EmptyText="- select -"
@@ -221,7 +228,7 @@
                         </div>
 
                         <div class="col-md-2 col-sm-12">
-                            <a class="btn btn-primary" @onclick="(() => AddSkill = true)"><i class="fa fa-free-code-camp" aria-hidden="true"></i> Add Skills</a>
+                            <a class="btn btn-primary" style="width: 100%;" @onclick="(() => AddSkill = true)"><i class="fa fa-free-code-camp" aria-hidden="true"></i> Add Skills</a>
                         </div>
                     </div>
 
@@ -232,7 +239,7 @@
                             <ValidationMessage For="() => model.OtherSkills" />
                         </div>
                     </div>
-                  
+
                     <div class="form-group row mb-2">
                         <label class="col-form-label col-md-2 bold-font">Upload Aadhaar</label>
                         <div class="col-md-4">
@@ -278,7 +285,7 @@
                                             <i class="fa fa-exclamation-circle" aria-hidden="true" title="No file to preview"></i>
                                         }
                                         else if ((model.Id > 0 || Key != null) && PanView != string.Empty)
-                                        {                                         
+                                        {
                                             if (IsImageFile(filePath))
                                             {
                                                 <a @onclick="()=>{ShowPreview = true; filePath = Uri.EscapeUriString(PanView);}"><i class="fa fa-file text-warning" style="cursor: pointer" aria-hidden="true" title="View"></i></a>
@@ -314,7 +321,7 @@
                                         }
                                         else if ((model.Id > 0 || Key != null) && BankPassView != string.Empty)
                                         {
-                                            
+
                                             if (IsImageFile(filePath))
                                             {
                                                 <a @onclick="()=>{ShowPreview = true; filePath = Uri.EscapeUriString(BankPassView);}"><i class="fa fa-file text-warning" style="cursor: pointer" aria-hidden="true" title="View"></i></a>
@@ -354,7 +361,7 @@
                                             }
                                             else
                                             {
-                                               
+
                                                 <a href="@Uri.EscapeUriString(CertificateView)" target="_blank" rel="noopener noreferrer"> <i class="fa fa-file text-warning" style="cursor: pointer" aria-hidden="true" title="View"></i> </a>
                                             }
 
@@ -384,7 +391,7 @@
                                         }
                                         else if ((model.Id > 0 || Key != null) && ProfilePicView != string.Empty)
                                         {
-                                         
+
 
                                             if (IsImageFile(filePath))
                                             {
@@ -496,6 +503,73 @@
                                 </div>
                             </div>
                         </MudExpansionPanel>
+                        <MudExpansionPanel Text="Permission" MaxHeight="500" Class="custom-header">
+                            <div class="form-group row">
+                                <label class="col-form-label col-md-1 bold-font required-field">EMS</label>
+                                <div class="col-md-1 mb-2">
+                                    <input type="checkbox" @bind="model.EMS" class="form-check-input mt-2" />
+                                </div>
+                                @if(model.EMS){
+                                    <div class="col-md-3 mb-2">
+                                        <MudGrid>
+                                            <MudItem xs="12" sm="6" md="12">
+                                                <MudAutocomplete T="Employee" Label="Select Manager" @bind-Value="selectedEMS" SearchFunc="@EmsSearch" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                                 ToStringFunc="@(e => e == null ? null : $"{e.EmployeeName} - {e.CompanyCode}")"
+                                                                 Required="false"
+                                                                 ResetValueOnEmptyText="true"
+                                                                 CoerceText="true"
+                                                                 CoerceValue="true"
+                                                                 MaxItems="null">
+                                                </MudAutocomplete>
+                                            </MudItem>
+                                        </MudGrid>
+                                        @if(selectedEMS!=null){model.EmsManagerEmpId = selectedEMS.EmployeeId; model.EmsManagerEmail = selectedEMS.EmailId; }
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <InputText id="EmpBankIfsc" @bind-Value="model.EmsManagerEmpId" class="form-control" disabled placeholder="Manager EmployeeID" />
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <InputText id="EmpBankIfsc" @bind-Value="model.EmsManagerEmail" class="form-control" disabled placeholder="Manager Email" />
+                                    </div>
+                                }
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-form-label col-md-1 bold-font required-field">LM</label>
+                                <div class="col-md-1 mb-2">
+                                    <input type="checkbox" @bind="model.LM" class="form-check-input mt-2" />
+                                </div>
+                                  @if(model.LM)
+                                  {
+                                    <div class="col-md-3 mb-2">
+                                        <MudGrid>
+                                            <MudItem xs="12" sm="6" md="12">
+                                                <MudAutocomplete T="Employee" Label="Select Manager" @bind-Value="selectedLM" SearchFunc="@EmsSearch" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                                 ToStringFunc="@(e => e == null ? null : $"{e.EmployeeName} - {e.CompanyCode}")"
+                                                                 Required="false"
+                                                                 ResetValueOnEmptyText="true"
+                                                                 CoerceText="true"
+                                                                 CoerceValue="true"
+                                                                 MaxItems="null">
+                                                </MudAutocomplete>
+                                            </MudItem>
+                                        </MudGrid>
+                                        @if (selectedLM != null) { model.LmManagerEmpId = selectedLM.EmployeeId; model.LmManagerEmail = selectedLM.EmailId; }
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <InputText id="EmpBankIfsc" @bind-Value="model.LmManagerEmpId" class="form-control" disabled placeholder="Manager EmployeeID"/>
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <InputText id="EmpBankIfsc" @bind-Value="model.LmManagerEmail" class="form-control" disabled placeholder="Manager Email" />
+                                    </div>
+                                }
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-form-label col-md-1 bold-font required-field">CMS</label>
+                                <div class="col-md-1 mb-2">
+                                    <input type="checkbox" @bind="model.CMS" class="form-check-input mt-2" />
+                                </div>
+                            </div>
+                        </MudExpansionPanel>
                     </MudExpansionPanels>
 
 
@@ -540,7 +614,7 @@
                             @* <iframe src="@filePath" style="height:400px; width:100%"></iframe> *@
                             @* <a href="@filePath" target="_blank" rel="noopener noreferrer">Open PDF</a> *@
                         }
-                       
+
                     </div>
                 </FilePreviewDailog>
 
@@ -560,11 +634,22 @@
     public DateTime date { get; set; }
 
 
-    //not in use
-    private void OpenDialog(DialogOptions options)
+
+    #region Sharepoint Setting
+    private string _tenantId = "cf92019c-152d-42f6-bbcc-0cf96e6b0108";
+    private string _clientId = "ab34deba-f294-4103-995f-0f93546acb2e";
+    private string _clientSecret = "qMk8Q~VKszyYNQJET3LB5_qbBeETAoV-SBEPYbZr";
+    private string _siteUrl = "https://credentinfotec.sharepoint.com/sites/demopoc";
+    private string _listName = "TestEMPM";
+    #endregion
+
+    public async Task SharepointUpdate()
     {
-        Dialog.Show<MudBlazorDailog>("Custom Options Dialog", options);
+        //await SharePointService.AddItemToList();
     }
+
+    bool EmailRequest = false;
+    private IEnumerable<dynamic> listItems;
 
     private bool IsImageFile(string filePath)
     {
@@ -698,6 +783,10 @@
     string BankPassView = string.Empty;
     string CertificateView = string.Empty;
     string ProfilePicView = string.Empty;
+    private async Task Sharepoint()
+    {
+
+    }
     protected override async Task OnInitializedAsync()
     {
         BaseUri = NavigationManager.BaseUri;
@@ -785,6 +874,7 @@
         {
             Init();
         }
+
     }
 
     public async Task<EmployeeFilesMapping> GetEmployeeFiles(int id)
@@ -805,7 +895,7 @@
             if (model.DateOfLeaving != DateTime.MinValue && model.DateOfLeaving < model.DateOfJoin)
             {
                 Message = "Alert";
-                MessageBody = "Leaving Date is greate then Joininig Date!";
+                MessageBody = "Leaving Date is greater then Joining Date!";
                 TaskCompleted = true;
                 return;
             }
@@ -884,6 +974,13 @@
 
 
                 }
+                if(EmailRequest)
+                {
+                    await SendRequestToCreateEmail();
+                }
+
+                await AddItem();
+
                 Message = Id > 0 ? "Successfully Updated" : "Successfully Added";
                 TaskCompleted = true;
             }
@@ -1109,7 +1206,6 @@
 
                         model.EmployeeId = updatedEmployeeId;
                     }
-
                 }
 
             }
@@ -1118,5 +1214,53 @@
                 model.EmployeeId = model.CompanyCode + 1.ToString("d3");
             }
         }
+    }
+
+    private Company? selectedCompany { get; set; }
+    private async Task<IEnumerable<Company>> CompanySearch(string value)
+    {
+        model.CompanyCode = null;
+        await Task.Delay(5);
+        if (string.IsNullOrEmpty(value))
+            return company;
+        return company
+            .Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase) ||
+            x.CompanyCode.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    private Employee? selectedEMS { get; set; }
+    private Employee? selectedLM { get; set; }
+    private async Task<IEnumerable<Employee>> EmsSearch(string value)
+    {
+        await Task.Delay(5);
+        if (string.IsNullOrEmpty(value))
+            return employee.Where(o => o.Status != EmployeeStatus.Resigned);
+
+        return employee.Where(o =>o.Status != EmployeeStatus.Resigned)
+            .Where(x => x.EmployeeId.Contains(value, StringComparison.InvariantCultureIgnoreCase) || x.EmployeeName.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    public async Task SendRequestToCreateEmail()
+    {
+        CreateEmailRequest createEmailRequest = new();
+        createEmailRequest.Name = model.EmployeeName;
+        createEmailRequest.CompanyCode = model.CompanyCode;
+        createEmailRequest.Email = model.ExternalEmailId;
+        createEmailRequest.LandingUrl = model.ReturnUrl;
+        createEmailRequest.EmployeeID = model.EmployeeId;
+        var response = await client.CreateEmailRequest(createEmailRequest);
+
+    }
+
+    private async Task AddItem()
+    {
+        var updateListItemRequest = new UpdateListItemRequest
+            {
+                ItemId = 1, // Replace with the actual item ID
+                UpdatedValue = "Chhagan Sinha" // Replace with the actual updated value
+            };
+
+        await client.UpdateListItems(updateListItemRequest);
+
     }
 }

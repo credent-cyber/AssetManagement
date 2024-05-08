@@ -10,6 +10,7 @@ using Serilog;
 using Blazored.LocalStorage;
 using MudBlazor.Services;
 using Havit.Blazor.Components.Web;
+using PnP.Core.Services;
 
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -30,6 +31,11 @@ builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<IdentityAuthenticationStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(s => s.GetRequiredService<IdentityAuthenticationStateProvider>());
 builder.Services.AddScoped<IAuthorizeApi, AuthorizeApi>();
+
+
+
+
+
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 builder.Services.AddHttpClient<AppClient>(client => client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));

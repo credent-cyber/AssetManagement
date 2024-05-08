@@ -102,7 +102,28 @@ namespace AssetManagement.Dto.Models
 
         [NotMapped]
         public string Skills { get; set; } = string.Empty;
+        
+        [NotMapped]
+        public bool EMS { get; set; } 
+        [NotMapped]
+        public string EmsManagerName { get; set; } = string.Empty;
+        [NotMapped]
+        public string EmsManagerEmail { get; set; } = string.Empty;
+        [NotMapped]
+        public string EmsManagerEmpId { get; set; } = string.Empty;
 
+        [NotMapped]
+        public bool LM { get; set; }
+        [NotMapped]
+        public string LmManagerName { get; set; } = string.Empty;
+        [NotMapped]
+        public string LmManagerEmail { get; set; } = string.Empty;
+        [NotMapped]
+        public string LmManagerEmpId { get; set; } = string.Empty;
+
+        [NotMapped]
+        public bool CMS { get; set; }
+       
     }
 
     public class EmployeeImport

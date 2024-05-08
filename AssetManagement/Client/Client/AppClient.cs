@@ -286,6 +286,28 @@ namespace AssetManagement.Client.Client
         #endregion
 
         #region Employee
+        public async Task<ApiResponse<CreateEmailRequest>> CreateEmailRequest(CreateEmailRequest createEmailRequest)
+        {
+            var result = new ApiResponse<CreateEmailRequest>();
+            try
+            {
+                var res = await HttpClient.PostAsJsonAsync($"api/App/CreateEmailRequest", createEmailRequest);
+
+                if (res.IsSuccessStatusCode)
+                {
+                    var content = await res.Content.ReadFromJsonAsync<ApiResponse<CreateEmailRequest>>();
+                    result.IsSuccess = true;
+                   // result.Result = res.Result;
+                }
+            }
+            catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.Message = ex.Message;
+            }
+            return result;
+        
+        }
         public async Task<Employee> GetEmployeeById(int id)
         {
             Employee result = null;
@@ -344,7 +366,7 @@ namespace AssetManagement.Client.Client
                 throw;
             }
         }
-       
+
         [AllowAnonymous]
         public async Task<ApiResponse<EmployeeOnboardingDto>> UpsertEmployeeOnboarding(EmployeeOnboardingDto data)
         {
@@ -363,7 +385,7 @@ namespace AssetManagement.Client.Client
                 throw;
             }
         }
-        
+
         [AllowAnonymous]
         public async Task<ApiResponse<EmployeeOnboardingDto>> GetOnboardingDataByKey(string Key)
         {
@@ -430,7 +452,7 @@ namespace AssetManagement.Client.Client
             }
 
         }
-        
+
         [AllowAnonymous]
         public async Task<EmployeeFilesMapping> GetEmployeeFilesById(int id)
         {
@@ -461,7 +483,7 @@ namespace AssetManagement.Client.Client
             return result;
         }
 
-     
+
         public async Task<IEnumerable<EmployeeFilesMapping>> GetAllEmployeeFileMap()
         {
             IEnumerable<EmployeeFilesMapping> result = null;
@@ -1264,7 +1286,7 @@ namespace AssetManagement.Client.Client
 
         public async Task<byte[]> EmployeeExportToExcel(EmployeeFilterModel model)
         {
-            
+
 
             var response = await HttpClient.PostAsJsonAsync($"api/Report/EmployeeExcelReport", model);
             response.EnsureSuccessStatusCode();
@@ -1299,7 +1321,27 @@ namespace AssetManagement.Client.Client
                 throw;
             }
         }
-       
         #endregion
+
+        public async Task<UpdateListItemRequest> UpdateListItems(UpdateListItemRequest model)
+        {
+            try
+            {
+                var res = await HttpClient.PostAsJsonAsync($"api/sharepoint/updateListItem", model);
+                res.EnsureSuccessStatusCode();
+                return await res.Content.ReadFromJsonAsync<UpdateListItemRequest>();
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogCritical(ex, ex.Message);
+                throw;
+            }
+        }
     }
+}
+public class UpdateListItemRequest
+{
+    public int ItemId { get; set; }
+    public string UpdatedValue { get; set; }
 }

@@ -1,0 +1,152 @@
+﻿@page "/Settings"
+@using AssetManagement.Client.Client;
+@using AssetManagement.Client.Pages.AppPages.Employees.Component
+@using AssetManagement.Client.Shared.Popup
+@using AssetManagement.Dto.Models
+@using AssetManagement.Dto;
+@using System.Text.Json;
+@using System.Text.RegularExpressions;
+@using Microsoft.AspNetCore.Components.Forms
+@inject AppClient client
+@inject IJSRuntime JSRuntime;
+@inject NavigationManager NavigationManager
+@attribute [Authorize]
+
+<div>
+    <div class="card mb-4">
+        <div class="card-header bg-secondary text-center">
+            @Title
+        </div>
+        <div class="card-body">
+            @if (model == null)
+            {
+                <div class="loader-container mt-4">
+                    <div class="loader"></div>
+                </div>
+            }
+            else
+            {
+                <EditForm Model="@model" OnValidSubmit="@OnValidSubmit">
+                    <DataAnnotationsValidator />
+                    <div class="form-group row mb-2">
+                        <label class="col-form-label col-md-2 bold-font required-field">Company Code</label>
+                        <div class="col-md-2">
+                            <InputSelect id="CompanyCode" @bind-Value="model.CompanyCode" class="form-control">
+                                <option selected>- Select -</option>
+                            </InputSelect>
+                            <ValidationMessage For="() => model.CompanyCode" />
+                        </div>
+
+                        <label class="col-form-label col-md-2 bold-font required-field">Employee Id</label>
+                        <div class="col-md-2">
+                            <InputText id="EmployeeId" @bind-Value="model.EmployeeId" class="form-control" />
+                            <ValidationMessage For="() => model.EmployeeId" />
+                        </div>
+
+                        <label class="col-form-label col-md-1 bold-font required-field">Name</label>
+                        <div class="col-md-3">
+                            <InputText id="EmployeeName" @bind-Value="model.EmployeeName" class="form-control" />
+                            <ValidationMessage For="() => model.EmployeeName" />
+                        </div>
+                    </div>
+
+                    <div style="text-align:center;" class="mt-4">
+                        <button type="submit" class="btn btn-success col-md-2">Submit</button>
+                        <button type="button" class="btn btn-danger col-md-2" @onclick="OnClose">Close</button>
+                    </div>
+                </EditForm>
+                <Dailog Title="@Message" Show="@show" OnCloseDialog="ResetForm">
+                    @if (show)
+                    {
+                        @if (TaskCompleted)
+                        {
+                            <div style="text-align:center;">
+                                @MessageBody
+                            </div>
+                        }
+                        else
+                        {
+                            <div style="text-align:center">
+                                <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+                            </div>
+                        }
+                    }
+                </Dailog>
+            }
+        </div>
+    </div>
+
+</div>
+
+@code {
+    Employee model = new();
+
+    string Message = string.Empty;
+    string MessageBody = "Thank you!";
+    bool IsError = false;
+    bool IsSuccess = false;
+    bool TaskCompleted = false;
+    string Title = "Application Settings";
+    bool show = false;
+
+    public void OnClose()
+    {
+        
+    }
+    public void ResetForm()
+    {
+        
+    }
+
+    protected async Task OnValidSubmit()
+    {
+        Message = string.Empty;
+        MessageBody = "Thank you!";
+        IsError = false;
+        IsSuccess = false;
+        show = true;
+        TaskCompleted = false;
+        try
+        {
+            if (model.DateOfLeaving != DateTime.MinValue && model.DateOfLeaving < model.DateOfJoin)
+            {
+                Message = "Alert";
+                MessageBody = "Leaving Date is greater then Joining Date!";
+                TaskCompleted = true;
+                return;
+            }
+            Message = "Please wait";
+            int Id = model.Id;
+
+            var response = await client.UpsertEmployeeAsync(model);
+            if (response.IsSuccess)
+            {
+                model = response.Result;
+                if (model.Id > 0)
+                {
+
+
+
+                }
+               
+                Message = Id > 0 ? "Successfully Updated" : "Successfully Added";
+                TaskCompleted = true;
+            }
+            else
+            {
+                Message = "Error!";
+                MessageBody = response.Message;
+                TaskCompleted = true;
+            }
+
+        }
+        catch (Exception ex)
+        {
+           
+            IsError = true;
+            Message = "Error!";
+            MessageBody = ex.Message;
+            TaskCompleted = true;
+        }
+    }
+}
