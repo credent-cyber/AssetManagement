@@ -7,6 +7,7 @@ using AssetManagement.Server.EmailService;
 using AssetManagement.Server.Intrastructure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 using Serilog;
 
 
@@ -111,10 +112,7 @@ builder.Services.AddScoped<IAppRepository, AppRepository>();
 builder.Services.AddSingleton(builder.Configuration.GetSection("MailSettings").Get<MailSettings>());
 builder.Services.AddScoped<IMailService, MailService>();
 builder.Services.AddScoped<SharePointService>();
-builder.Services.AddHttpClient<SharePointService>(client =>
-{
-    client.BaseAddress = new Uri("https://credentinfotec.sharepoint.com");
-});
+
 
 //builder.Services.AddControllersWithViews();
 builder.Services.AddControllers();

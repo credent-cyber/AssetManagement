@@ -113,6 +113,8 @@ namespace AssetManagement.Dto.Models
         public string EmsManagerEmpId { get; set; } = string.Empty;
 
         [NotMapped]
+        public bool SharepointPortal { get; set; }
+        [NotMapped]
         public bool LM { get; set; }
         [NotMapped]
         public string LmManagerName { get; set; } = string.Empty;

@@ -976,5 +976,7 @@ namespace AssetManagement.Server.Controllers.Api
             return await _appRepository.GetFilteredAssetReport(model);
         }
         #endregion
+
+
     }
 }

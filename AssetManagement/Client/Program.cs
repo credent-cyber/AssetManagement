@@ -10,7 +10,6 @@ using Serilog;
 using Blazored.LocalStorage;
 using MudBlazor.Services;
 using Havit.Blazor.Components.Web;
-using PnP.Core.Services;
 
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);

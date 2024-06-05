@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.OData.Routing.Controllers;
 
 namespace AssetManagement.Server.Controllers.Api.OData
 {
-    [Authorize]
+   
     public class AllocationController : ODataController
     {
         public ILogger<AllocationController> Logger { get; }
@@ -21,7 +21,7 @@ namespace AssetManagement.Server.Controllers.Api.OData
         }
 
         [EnableQuery]
-
+        [Authorize]
         public IQueryable<Allocation> Get()
         {
             var data = DbContext.Allocation.AsQueryable();

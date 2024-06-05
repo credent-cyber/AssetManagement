@@ -8,44 +8,45 @@ namespace AssetManagement.Dto
 {
     public class SharepointListUpdate
     {
-        public string EmployeeName { get; set; }
-        public string Gender { get; set; }
-        public string Designation { get; set; }
+        public string EmployeeName { get; set; } = string.Empty;
+        public string Gender { get; set; } = string.Empty;
+        public string Designation { get; set; } = string.Empty;
         public bool IsCMSAdmin { get; set; }
         public DateTime DOB { get; set; }
-        public string Location { get; set; }
+        public string Location { get; set; } = string.Empty;
         public DateTime DateOfJoining { get; set; }
-        public string EmployeeID { get; set; }
-        public string Photo { get; set; }
-        public string Status { get; set; }
-        public string Department { get; set; }
-        public string Email { get; set; }
-        public string ManagerID { get; set; }
-        public string Manager { get; set; }
-        public string ManagerEmail { get; set; }
+        public string EmployeeID { get; set; } = string.Empty;
+        public string Photo { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public string ? Department { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string ManagerID { get; set; } = string.Empty;
+        public string Manager { get; set; } = string.Empty;
+        public string ManagerEmail { get; set; } = string.Empty;
         public int MonthNo { get; set; }
         public int LeaveBalanceWF { get; set; }
-        public string HOD { get; set; }
-        public string EmployeeType { get; set; }
+        public string HOD { get; set; } = string.Empty;
+        public string EmployeeType { get; set; } = string.Empty;
         public bool IsAdmin { get; set; }
         public bool IsDualDept { get; set; }
-        public string Phoneno { get; set; }
-        public string Branch { get; set; }
+        public string Phoneno { get; set; } = string.Empty;
+        public string Branch { get; set; } = string.Empty;
         public bool IsEngineer { get; set; }
-        public string AadhaarCard { get; set; }
-        public string PanCard { get; set; }
+        public string AadhaarCard { get; set; } = string.Empty;
+        public string PanCard { get; set; } = string.Empty;
         public bool IsFinance { get; set; }
         public bool IsHigherAuthority { get; set; }
-        public string Country { get; set; }
-        public string Currency { get; set; }
+        public string Country { get; set; } = string.Empty;
+        public string Currency { get; set; } = string.Empty;
         public bool IsTKAdmin { get; set; }
-        public string LMManagerID { get; set; }
-        public string LMManagerName { get; set; }
-        public string LMManagerEmail { get; set; }
-        public string LM { get; set; }
-        public string EMS { get; set; }
-        public string CMS { get; set; }
-        public string SitePermission { get; set; }
+        public string LMManagerID { get; set; } = string.Empty;
+        public string LMManagerName { get; set; } = string.Empty;
+        public string LMManagerEmail { get; set; } = string.Empty;
+        public bool Portal { get; set; } 
+        public bool LM { get; set; } 
+        public bool EMS { get; set; } 
+        public bool CMS { get; set; }
+        public string SitePermission { get; set; } = string.Empty;
     }
 
 }

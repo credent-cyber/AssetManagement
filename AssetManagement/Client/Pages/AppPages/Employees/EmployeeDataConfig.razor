@@ -503,11 +503,28 @@
                                 </div>
                             </div>
                         </MudExpansionPanel>
+                       
                         <MudExpansionPanel Text="Permission" MaxHeight="500" Class="custom-header">
+                            <div class="form-group row">
+                                <label class="col-form-label col-md-1 bold-font">Portal</label>
+                                <div class="col-md-1 mb-2">
+                                    <input type="checkbox" @bind="model.SharepointPortal" class="form-check-input mt-2" />
+                                </div>
+                            </div>
+                            @if (model.SharepointPortal == true)
+                            {
+                                model.LM = true;
+                                model.EMS = true;
+                            }
+                            else
+                            {
+                                model.LM = false;
+                                model.EMS = false;
+                            }
                             <div class="form-group row">
                                 <label class="col-form-label col-md-1 bold-font required-field">EMS</label>
                                 <div class="col-md-1 mb-2">
-                                    <input type="checkbox" @bind="model.EMS" class="form-check-input mt-2" />
+                                    <input type="checkbox" @bind="model.EMS" class="form-check-input mt-2"  disabled/>
                                 </div>
                                 @if(model.EMS){
                                     <div class="col-md-3 mb-2">
@@ -524,6 +541,13 @@
                                             </MudItem>
                                         </MudGrid>
                                         @if(selectedEMS!=null){model.EmsManagerEmpId = selectedEMS.EmployeeId; model.EmsManagerEmail = selectedEMS.EmailId; }
+                                        else
+                                        {
+                                            if (submit)
+                                            {
+                                                <p style="color:red">Please select email</p>
+                                            }
+                                        }
                                     </div>
                                     <div class="col-md-3 mb-2">
                                         <InputText id="EmpBankIfsc" @bind-Value="model.EmsManagerEmpId" class="form-control" disabled placeholder="Manager EmployeeID" />
@@ -536,7 +560,7 @@
                             <div class="form-group row">
                                 <label class="col-form-label col-md-1 bold-font required-field">LM</label>
                                 <div class="col-md-1 mb-2">
-                                    <input type="checkbox" @bind="model.LM" class="form-check-input mt-2" />
+                                    <input type="checkbox" @bind="model.LM" class="form-check-input mt-2" disabled />
                                 </div>
                                   @if(model.LM)
                                   {
@@ -554,6 +578,7 @@
                                             </MudItem>
                                         </MudGrid>
                                         @if (selectedLM != null) { model.LmManagerEmpId = selectedLM.EmployeeId; model.LmManagerEmail = selectedLM.EmailId; }
+                                        else{if(submit){ <p style="color:red">Please select email</p> }}
                                     </div>
                                     <div class="col-md-3 mb-2">
                                         <InputText id="EmpBankIfsc" @bind-Value="model.LmManagerEmpId" class="form-control" disabled placeholder="Manager EmployeeID"/>
@@ -564,11 +589,12 @@
                                 }
                             </div>
                             <div class="form-group row">
-                                <label class="col-form-label col-md-1 bold-font required-field">CMS</label>
+                                <label class="col-form-label col-md-1 bold-font">CMS</label>
                                 <div class="col-md-1 mb-2">
                                     <input type="checkbox" @bind="model.CMS" class="form-check-input mt-2" />
                                 </div>
                             </div>
+                            
                         </MudExpansionPanel>
                     </MudExpansionPanels>
 
@@ -633,23 +659,9 @@
     [Parameter]
     public DateTime date { get; set; }
 
-
-
-    #region Sharepoint Setting
-    private string _tenantId = "cf92019c-152d-42f6-bbcc-0cf96e6b0108";
-    private string _clientId = "ab34deba-f294-4103-995f-0f93546acb2e";
-    private string _clientSecret = "qMk8Q~VKszyYNQJET3LB5_qbBeETAoV-SBEPYbZr";
-    private string _siteUrl = "https://credentinfotec.sharepoint.com/sites/demopoc";
-    private string _listName = "TestEMPM";
-    #endregion
-
-    public async Task SharepointUpdate()
-    {
-        //await SharePointService.AddItemToList();
-    }
-
     bool EmailRequest = false;
     private IEnumerable<dynamic> listItems;
+    bool submit = false;
 
     private bool IsImageFile(string filePath)
     {
@@ -783,16 +795,14 @@
     string BankPassView = string.Empty;
     string CertificateView = string.Empty;
     string ProfilePicView = string.Empty;
-    private async Task Sharepoint()
-    {
 
-    }
     protected override async Task OnInitializedAsync()
     {
         BaseUri = NavigationManager.BaseUri;
         SkillOptions = new List<EmployeeSkills>(await client.GetAllSkill());
         company = new List<Company>(await client.GetAllCompany());
         employee = new List<Employee>(await client.GetAllEmployee());
+        
         if (Key != null)
         {
             var responce = await client.GetOnboardingDataById(Key);
@@ -853,6 +863,7 @@
         if (Id > 0)
         {
             model = await client.GetEmployeeById(Id);
+            employee = employee.Where(x => x.EmailId != model.EmailId).ToList();
             var skillOption = await client.GetEmployeeSkillsIDs(Id);
             SelectedSkill.AddRange(skillOption.Select(tc => tc.EmployeeSkillId));
             employeeFiles = await GetEmployeeFiles(Id);
@@ -869,6 +880,16 @@
                 if (employeeFiles.ProfilePhotoFile != "")
                     ProfilePicView = $"{BaseUri}EmployeesZone/{employeeFiles.ProfilePhotoFile}";
             }
+            if(model.EmailId != null){
+                var listData = await client.GetListItemByEmail(model.EmailId);
+                model.SharepointPortal = listData.Portal;
+                model.LM = listData.LM;
+                model.EMS = listData.EMS;
+                model.CMS = listData.CMS;
+                selectedLM = employee.Where(x=>x.EmailId == listData.LMManagerEmail).FirstOrDefault();
+                selectedEMS = employee.Where(x => x.EmailId == listData.ManagerEmail).FirstOrDefault();
+            }
+
         }
         else
         {
@@ -884,6 +905,9 @@
 
     protected async Task OnValidSubmit()
     {
+        submit = true;
+        if (selectedEMS == null || selectedLM == null)
+            return;
         Message = string.Empty;
         MessageBody = "Thank you!";
         IsError = false;
@@ -1239,7 +1263,6 @@
         return employee.Where(o =>o.Status != EmployeeStatus.Resigned)
             .Where(x => x.EmployeeId.Contains(value, StringComparison.InvariantCultureIgnoreCase) || x.EmployeeName.Contains(value, StringComparison.InvariantCultureIgnoreCase));
     }
-
     public async Task SendRequestToCreateEmail()
     {
         CreateEmailRequest createEmailRequest = new();
@@ -1251,16 +1274,33 @@
         var response = await client.CreateEmailRequest(createEmailRequest);
 
     }
-
+    SharepointListUpdate updateListItemRequest = new();
     private async Task AddItem()
     {
-        var updateListItemRequest = new UpdateListItemRequest
-            {
-                ItemId = 1, // Replace with the actual item ID
-                UpdatedValue = "Chhagan Sinha" // Replace with the actual updated value
-            };
 
-        await client.UpdateListItems(updateListItemRequest);
+        updateListItemRequest.EmployeeName = model.EmployeeName;
+        updateListItemRequest.Gender = "";
+        updateListItemRequest.Designation = model.Designation;
+        updateListItemRequest.EmployeeID = model.EmployeeId;
+        updateListItemRequest.DOB = model.DateOfBirth;
+        updateListItemRequest.DateOfJoining = model.DateOfJoin;
+        updateListItemRequest.Status = model.Status.ToString();
+        updateListItemRequest.Department = model.Department;
+        updateListItemRequest.Email = model.EmailId;
+        updateListItemRequest.Portal = model.SharepointPortal;
+        updateListItemRequest.LM = model.LM;
+        updateListItemRequest.EMS = model.EMS;
+        updateListItemRequest.CMS = model.CMS;
+        updateListItemRequest.LMManagerName = selectedLM.EmployeeName;
+        updateListItemRequest.LMManagerEmail = selectedLM.EmailId;
+        // updateListItemRequest.LMManagerID = selectedLM.Id.ToString();
+        // updateListItemRequest.ManagerID = selectedEMS.Id.ToString();
+        updateListItemRequest.Manager = selectedEMS.EmployeeName;
+        updateListItemRequest.ManagerEmail = selectedEMS.EmailId;
 
+
+        await client.InsertListItem(updateListItemRequest);
+    
     }
 }
+

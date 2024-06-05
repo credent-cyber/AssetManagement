@@ -1323,13 +1323,13 @@ namespace AssetManagement.Client.Client
         }
         #endregion
 
-        public async Task<UpdateListItemRequest> UpdateListItems(UpdateListItemRequest model)
+        public async Task<SharepointListUpdate> UpdateListItems(SharepointListUpdate model)
         {
             try
             {
-                var res = await HttpClient.PostAsJsonAsync($"api/sharepoint/updateListItem", model);
+                var res = await HttpClient.PostAsJsonAsync($"api/SharePoint/updateListItem", model);
                 res.EnsureSuccessStatusCode();
-                return await res.Content.ReadFromJsonAsync<UpdateListItemRequest>();
+                return await res.Content.ReadFromJsonAsync<SharepointListUpdate>();
 
             }
             catch (Exception ex)
@@ -1338,10 +1338,37 @@ namespace AssetManagement.Client.Client
                 throw;
             }
         }
+        public async Task<SharepointListUpdate> InsertListItem(SharepointListUpdate model)
+        {
+            try
+            {
+                var res = await HttpClient.PostAsJsonAsync($"api/SharePoint/insertListItem", model);
+                res.EnsureSuccessStatusCode();
+                return await res.Content.ReadFromJsonAsync<SharepointListUpdate>();
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogCritical(ex, ex.Message);
+                throw;
+            }
+        }
+
+        public async Task<SharepointListUpdate> GetListItemByEmail(string Email)
+        {
+            try
+            {
+                var res = await HttpClient.PostAsync($"api/SharePoint/getListItemByEmail?Email={Email}", null);
+                res.EnsureSuccessStatusCode();
+                var data =  await res.Content.ReadFromJsonAsync<SharepointListUpdate>();
+                return data;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogCritical(ex, ex.Message);
+                throw;
+            }
+        }
+
     }
-}
-public class UpdateListItemRequest
-{
-    public int ItemId { get; set; }
-    public string UpdatedValue { get; set; }
 }

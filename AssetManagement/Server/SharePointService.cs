@@ -1,156 +1,306 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using System.Collections.Generic;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
+using AssetManagement.Dto;
+using Azure.Identity;
+using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.Graph;
+using Microsoft.Identity.Client;
+using Org.BouncyCastle.Pqc.Crypto.Lms;
 
 namespace AssetManagement.Server
 {
-    using Microsoft.Identity.Client;
-    using MySqlX.XDevAPI;
-    using System.Net;
-    using System.Net.Http;
-    using System.Net.Http.Headers;
-    using System.Text;
-    using System.Text.Json;
-    using System.Threading.Tasks;
-
     public class SharePointService
     {
-        private readonly string _tenantId = "cf92019c-152d-42f6-bbcc-0cf96e6b0108";
-        private readonly string _clientId = "ab34deba-f294-4103-995f-0f93546acb2e";
-        private readonly string _clientSecret = "qMk8Q~VKszyYNQJET3LB5_qbBeETAoV-SBEPYbZr";
-        private readonly string _siteUrl = "https://credentinfotec.sharepoint.com/sites/demopoc";
-        private readonly string _listName = "TestEMPM";
-        private readonly HttpClient _httpClient;
-
-        public SharePointService(HttpClient httpClient)
+        private readonly string tenantId = "cf92019c-152d-42f6-bbcc-0cf96e6b0108";
+        private readonly string clientId = "ab34deba-f294-4103-995f-0f93546acb2e";
+        private readonly string clientSecret = "9B48Q~xXW4s73XNcUBMAxcb2hX2xzJMUYjwFGa6B";
+        string siteid = "Sharepoint Demo";
+        string root = "https://credentinfotec.sharepoint.com";
+        private readonly string siteUrl = "https://credentinfotec.sharepoint.com/sites/demopoc";
+        string[] scopes = new[] { "https://graph.microsoft.com/.default" };
+        GraphServiceClient _graphClient;
+        private readonly string listId = "42d95848-2f80-4133-bd98-73489f635755";
+        private readonly string list2Id = "bc08d9e3-9592-4a34-a927-d8ed6056568e";
+        public SharePointService()
         {
-            _httpClient = httpClient;
+            var options = new ClientSecretCredentialOptions()
+            {
+                AuthorityHost = AzureAuthorityHosts.AzurePublicCloud,
+            };
+            IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
+            .Create(clientId)
+            .WithClientSecret(clientSecret)
+            .WithTenantId(tenantId)
+            .Build();
+            var authResult = confidentialClientApplication.AcquireTokenForClient(scopes).ExecuteAsync().Result;
+            //var clientSecretCredential = new ClientSecretCredential(tenantId, clientId, clientSecret, options);
+            var authProvider = new DelegateAuthenticationProvider(req =>
+            {
+                req.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authResult.AccessToken);
+                return Task.FromResult(0);
+            });
+            _graphClient = new GraphServiceClient(authProvider);
         }
 
-        public async Task InsertListItem()
+        public async Task InsertDummyDataIntoListAsync()
         {
-            string accessToken = await GetAccessToken();
+            var listId = "42d95848-2f80-4133-bd98-73489f635755"; // ID of the TestEMPM list
 
-            string requestUrl = $"{_siteUrl}/_api/web/lists/GetByTitle('{_listName}')/items";
-
-            // Prepare the JSON payload with the fields to be inserted
-            var content = new StringContent(JsonSerializer.Serialize(new
+            // Create a new ListItem object with dummy data
+            var newItem = new Microsoft.Graph.ListItem
             {
-                __metadata = new { type = "SP.Data.TestEMPMListItem" },
-                EmployeeName = "employeeName",
-                //Gender = gender,
-                //Designation = designation,
-                //IsCMSAdmin = isCMSAdmin,
-                //DOB = dob,
-                //Location = location,
-                //DateOfJoining = dateOfJoining,
-                //EmployeeID = employeeID,
-                //Photo = photo,
-                //Status = status,
-                //Department = department,
-                //Email = email,
-                //ManagerID = managerID,
-                //Manager = manager,
-                //ManagerEmail = managerEmail,
-                //MonthNo = monthNo,
-                //LeaveBalanceWF = leaveBalanceWF,
-                //HOD = hod,
-                //EmployeeType = employeeType,
-                //isAdmin = isAdmin,
-                //isDualDept = isDualDept,
-                //Phoneno = phoneNo,
-                //Branch = branch,
-                //IsEngineer = isEngineer,
-                //AadhaarCard = aadhaarCard,
-                //PanCard = panCard,
-                //IsFinance = isFinance,
-                //isHigherAuthority = isHigherAuthority,
-                //Country = country,
-                //Currency = currency,
-                //isTKAdmin = isTKAdmin,
-                //LMManagerID = lmManagerID,
-                //LMManagerName = lmManagerName,
-                //LMManagerEmail = lmManagerEmail,
-                //LM = lm,
-                //EMS = ems,
-                //CMS = cms,
-                //SitePermission = sitePermission
-            }));
-            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json;odata=verbose");
+                Fields = new FieldValueSet
+                {
+                    AdditionalData = new Dictionary<string, object>
+                    {
+                        { "Title", "Dummy Title" },
+                        { "Gender", "Male" },
+                        { "Designation", "Software Engineer" },
+                        { "DOB", new DateTime(1990, 5, 15) },
+                        { "Location", "City" },
+                        { "Date_x0020_of_x0020_joining", new DateTime(2018, 10, 1) },
+                        { "Department", "IT" },
+                        { "Status", "Active" },
+                        { "EmployeeName", "John Doe" },
+                        { "EmployeeID", "EMP001" },
+                        { "Email", "john.doe@example.com" },
+                        { "ManagerID", "MGR001" },
+                        { "ManagerEmail", "manager@example.com" },
 
-            // Attach the access token to the request headers
-            _httpClient.DefaultRequestHeaders.Add("Authorization",$"Bearer { accessToken}");
+                    }
+                }
+            };
 
-            // Send the POST request to insert the list item
-            HttpResponseMessage response = await _httpClient.PostAsync(requestUrl, content);
-
-            // Check if the request was successful
-            if (!response.IsSuccessStatusCode)
+            try
             {
-                throw new HttpRequestException($"Error inserting list item: {response.ReasonPhrase}");
+                var createdItem = await _graphClient.Sites["root"].SiteWithPath("/sites/demopoc").Lists[listId].Items.Request().AddAsync(newItem);
+                Console.WriteLine($"Dummy item inserted successfully with ID: {createdItem.Id}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inserting dummy item: {ex.Message}");
+            }
+        }
+        public async Task GetSitesAsync()
+        {
+            try
+            {
+                var site = await _graphClient.Sites[siteUrl].Request().GetAsync();
+                Console.WriteLine($"Site Name: {site.Name}, Site ID: {site.Id}, Site URL: {site.WebUrl}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving site: {ex.Message}");
             }
         }
 
-        public async Task UpdateListItem(int itemId, string updatedValue)
+        public async Task GetSiteListsAsync()
         {
-            await InsertListItem();
-
-            string accessToken = await GetAccessToken();
-            string requestUrl = $"{_siteUrl}/_api/web/lists/GetByTitle('{_listName}')/items({itemId})";
-            var content = new StringContent(JsonSerializer.Serialize(new
+            try
             {
-                __metadata = new { type = "SP.Data.TestEMPMListItem" },
-                EmployeeName = updatedValue
-            }));
-            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json;odata=verbose");
-
-            // Attach the access token to the request headers
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
-            // Send the PATCH request to update the list item
-            HttpResponseMessage response = await _httpClient.PatchAsync(requestUrl, content);
-
-            // Check if the request was successful
-            if (!response.IsSuccessStatusCode)
+                var siteLists = await _graphClient.Sites[siteUrl].Lists.Request().GetAsync();
+                foreach (var list in siteLists)
+                {
+                    Console.WriteLine($"List Name: {list.DisplayName}, List ID: {list.Id}");
+                }
+            }
+            catch (Exception ex)
             {
-                throw new HttpRequestException($"Error updating list item: {response.ReasonPhrase}");
+                Console.WriteLine($"Error retrieving lists: {ex.Message}");
             }
         }
 
-        private async Task<string> GetAccessToken()
+        public async Task<SharepointListUpdate> InsertOrUpdateListItemAsync(SharepointListUpdate request)
         {
-            //var tokenEndpoint = $"https://login.microsoftonline.com/{_tenantId}/oauth2/v2.0/token";
-            //var requestBody = $"client_id={Uri.EscapeDataString(_clientId)}" +
-            //                  $"&client_secret={Uri.EscapeDataString(_clientSecret)}" +
-            //                  $"&resource=https://credentinfotec.sharepoint.com" +
-            //                  $"&grant_type=client_credentials";
+            try
+            {
+                // Retrieve items from the first list
+                var items = await _graphClient.Sites["root"].SiteWithPath("/sites/demopoc").Lists[listId].Items
+                    .Request()
+                    .Header("Prefer", "HonorNonIndexedQueriesWarningMayFailRandomly")
+                    .Expand("Fields")
+                    .Filter($"fields/Email eq '{request.Email}'")
+                    .GetAsync();
 
-            //var requestContent = new StringContent(requestBody, Encoding.UTF8, "application/x-www-form-urlencoded");
+                // Retrieve items from the second list
+                var grantApplicationPermissionItems = await _graphClient.Sites["root"].SiteWithPath("/sites/demopoc").Lists[list2Id].Items
+                    .Request()
+                    .Header("Prefer", "HonorNonIndexedQueriesWarningMayFailRandomly")
+                    .Expand("Fields")
+                    .Filter($"fields/UserEmail eq '{request.Email}'")
+                    .GetAsync();
 
-            //using (var response = await _httpClient.PostAsync(tokenEndpoint, requestContent))
-            //{
-            //    if (response.IsSuccessStatusCode)
-            //    {
-            //        var responseContent = await response.Content.ReadAsStringAsync();
-            //        dynamic tokenResponse = Newtonsoft.Json.JsonConvert.DeserializeObject(responseContent);
-            //        return tokenResponse.access_token;
-            //    }
-            //}
-            //return null;
-            string resource = "https://credentinfotec.sharepoint.com";
-            string authority = $"https://login.microsoftonline.com/{_tenantId}"; 
-            string tokenEndpoint = $"{authority}/oauth2/token";
-            var tokenRequest = new Dictionary<string, string> { { "client_id", _clientId }, { "client_secret", _clientSecret }, { "grant_type", "client_credentials" }, { "resource", resource } }; 
-            var requestContent = new FormUrlEncodedContent(tokenRequest); var response = await _httpClient.PostAsync(tokenEndpoint, requestContent); 
-            if (response.IsSuccessStatusCode) 
-            { 
-                var tokenResponse = await response.Content.ReadAsStringAsync();
-                var json = Newtonsoft.Json.JsonConvert.DeserializeObject<TokenResponse>(tokenResponse);
-                var resp = json.AccessToken;
-                return resp;
+                if (items.Count == 1)
+                {
+                    var itemToUpdate = items[0];
+                    var updatedItem = new ListItem
+                    {
+                        Fields = new FieldValueSet
+                        {
+                            AdditionalData = new Dictionary<string, object>
+                            {
+                                { "Gender", request.Gender },
+                                { "Designation", request.Designation },
+                                { "DOB", new DateTime(request.DOB.Year == 1 ? 1 : request.DOB.Year, request.DOB.Month, request.DOB.Day) },
+                                { "Location", request.Location },
+                                { "Date_x0020_of_x0020_joining", new DateTime(request.DateOfJoining.Year == 1 ? 1 : request.DateOfJoining.Year, request.DateOfJoining.Month, request.DateOfJoining.Day) },
+                                { "Department", request.Department },
+                                { "Status", request.Status },
+                                { "EmployeeName", request.EmployeeName },
+                                { "EmployeeID", request.EmployeeID },
+                                { "Email", request.Email },
+                                { "ManagerID", request.ManagerID },
+                                { "ManagerEmail", request.ManagerEmail },
+                                { "LMManagerEmail", request.LMManagerEmail }
+                            }
+                        }
+                    };
+
+                    await _graphClient.Sites["root"].SiteWithPath("/sites/demopoc").Lists[listId].Items[itemToUpdate.Id]
+                        .Request()
+                        .UpdateAsync(updatedItem);
+
+                    Console.WriteLine($"Item with email '{request.Email}' updated successfully in listId.");
+                }
+                else
+                {
+                    var newItem = new ListItem
+                    {
+                        Fields = new FieldValueSet
+                        {
+                            AdditionalData = new Dictionary<string, object>
+                            {
+                                { "Gender", request.Gender },
+                                { "Designation", request.Designation },
+                                { "DOB", new DateTime(request.DOB.Year == 1 ? 1 : request.DOB.Year, request.DOB.Month, request.DOB.Day) },
+                                { "Location", request.Location },
+                                { "Date_x0020_of_x0020_joining", new DateTime(request.DateOfJoining.Year == 1 ? 1 : request.DateOfJoining.Year, request.DateOfJoining.Month, request.DateOfJoining.Day) },
+                                { "Department", request.Department },
+                                { "Status", request.Status },
+                                { "EmployeeName", request.EmployeeName },
+                                { "EmployeeID", request.EmployeeID },
+                                { "Email", request.Email },
+                                { "ManagerID", request.ManagerID },
+                                { "ManagerEmail", request.ManagerEmail },
+                                { "LMManagerEmail", request.LMManagerEmail }
+                            }
+                        }
+                    };
+
+                    var createdItem = await _graphClient.Sites["root"].SiteWithPath("/sites/demopoc").Lists[listId].Items.Request().AddAsync(newItem);
+                    Console.WriteLine($"New item inserted with email '{request.Email}' in listId.");
+                }
+
+                if (grantApplicationPermissionItems.Count == 1)
+                {
+                    var grantApplicationPermissionItemToUpdate = grantApplicationPermissionItems[0];
+                    var grantApplicationPermissionUpdateItems = new ListItem
+                    {
+                        Fields = new FieldValueSet
+                        {
+                            AdditionalData = new Dictionary<string, object>
+                            {
+                                { "UserEmail", request.Email },
+                                { "LM", request.LM },
+                                { "EMS", request.EMS },
+                                { "CMS", request.CMS },
+                                { "SitePermission", request.Portal }
+                            }
+                        }
+                    };
+
+                    await _graphClient.Sites["root"].SiteWithPath("/sites/demopoc").Lists[list2Id].Items[grantApplicationPermissionItemToUpdate.Id]
+                        .Request()
+                        .UpdateAsync(grantApplicationPermissionUpdateItems);
+
+                    Console.WriteLine($"Item with email '{request.Email}' updated successfully in list2Id.");
+                }
+                else
+                {
+                    var grantApplicationPermissionNewItem = new ListItem
+                    {
+                        Fields = new FieldValueSet
+                        {
+                            AdditionalData = new Dictionary<string, object>
+                            {
+                                { "UserEmail", request.Email },
+                                { "LM", request.LM },
+                                { "EMS", request.EMS },
+                                { "CMS", request.CMS },
+                                { "SitePermission", request.Portal }
+                            }
+                        }
+                    };
+
+                    var createdGrantApplicationPermissionItem = await _graphClient.Sites["root"].SiteWithPath("/sites/demopoc").Lists[list2Id].Items.Request().AddAsync(grantApplicationPermissionNewItem);
+                    Console.WriteLine($"New item inserted with email '{request.Email}' in list2Id.");
+                }
+
+                return request;
             }
-            else { throw new Exception("Failed to acquire access token."); }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inserting or updating item: {ex.Message}");
+                return null;
+            }
         }
+
+
+        public async Task<SharepointListUpdate> GetListItemByEmail(string email)
+        {
+            try
+            {
+                // Retrieve items from the first list
+                var items = await _graphClient.Sites["root"].SiteWithPath("/sites/demopoc").Lists[listId].Items
+                    .Request()
+                    .Header("Prefer", "HonorNonIndexedQueriesWarningMayFailRandomly")
+                    .Expand("fields")
+                    .Filter($"fields/Email eq '{email}'")
+                    .GetAsync();
+
+                // Retrieve items from the second list
+                var grantApplicationPermissionItems = await _graphClient.Sites["root"].SiteWithPath("/sites/demopoc").Lists[list2Id].Items
+                    .Request()
+                    .Header("Prefer", "HonorNonIndexedQueriesWarningMayFailRandomly")
+                    .Expand("fields")
+                    .Filter($"fields/UserEmail eq '{email}'")
+                    .GetAsync();
+
+                var sharepointListUpdate = new SharepointListUpdate();
+
+                // Check and retrieve data from the first list
+                if (items.Count == 1)
+                {
+                    var item = items[0];
+
+                    item.Fields.AdditionalData.TryGetValue("ManagerEmail", out var managerEmail);
+                    sharepointListUpdate.ManagerEmail = managerEmail?.ToString();
+
+                    item.Fields.AdditionalData.TryGetValue("LMManagerEmail", out var lmManagerEmail);
+                    sharepointListUpdate.LMManagerEmail = lmManagerEmail?.ToString();
+                }
+
+                // Check and retrieve data from the second list
+                if (grantApplicationPermissionItems.Count == 1)
+                {
+                    var grantApplicationPermissionItem = grantApplicationPermissionItems[0];
+                    sharepointListUpdate.Portal = bool.TryParse(grantApplicationPermissionItem.Fields.AdditionalData["SitePermission"]?.ToString(), out bool sp) ? sp : false;
+                    sharepointListUpdate.LM = bool.TryParse(grantApplicationPermissionItem.Fields.AdditionalData["LM"]?.ToString(), out bool lm) ? lm : false;
+                    sharepointListUpdate.EMS = bool.TryParse(grantApplicationPermissionItem.Fields.AdditionalData["EMS"]?.ToString(), out bool ems) ? ems : false;
+                    sharepointListUpdate.CMS = bool.TryParse(grantApplicationPermissionItem.Fields.AdditionalData["CMS"]?.ToString(), out bool cms) ? cms : false;
+
+                }
+
+                return sharepointListUpdate;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving item: {ex.Message}");
+                return null;
+            }
+        }
+
     }
-
 }
-
-public class TokenResponse { [JsonProperty("token_type")] public string TokenType { get; set; } [JsonProperty("expires_in")] public int ExpiresIn { get; set; } [JsonProperty("ext_expires_in")] public int ExtendedExpiresIn { get; set; } [JsonProperty("expires_on")] public long ExpiresOn { get; set; } [JsonProperty("not_before")] public long NotBefore { get; set; } [JsonProperty("resource")] public string Resource { get; set; } [JsonProperty("access_token")] public string AccessToken { get; set; } }
