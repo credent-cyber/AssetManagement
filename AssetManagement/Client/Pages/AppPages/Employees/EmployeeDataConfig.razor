@@ -34,7 +34,7 @@
             {
                 <EditForm Model="@model" OnValidSubmit="@OnValidSubmit">
                     <DataAnnotationsValidator />
-                    @*<ValidationSummary />*@
+                    @* <ValidationSummary /> *@
                     <div class="form-group row mb-2">
                         <label class="col-form-label col-md-2 bold-font required-field">Company Code</label>
                         <div class="col-md-2">
@@ -550,10 +550,11 @@
                                         }
                                     </div>
                                     <div class="col-md-3 mb-2">
-                                        <InputText id="EmpBankIfsc" @bind-Value="model.EmsManagerEmpId" class="form-control" disabled placeholder="Manager EmployeeID" />
+                                        <InputText id="EmsManagerEmpId" @bind-Value="model.EmsManagerEmpId" class="form-control" disabled placeholder="Manager EmployeeID" />
+                                        <ValidationMessage For="() => model.EmsManagerEmpId" />
                                     </div>
                                     <div class="col-md-4 mb-2">
-                                        <InputText id="EmpBankIfsc" @bind-Value="model.EmsManagerEmail" class="form-control" disabled placeholder="Manager Email" />
+                                        <InputText id="EmsManagerEmail" @bind-Value="model.EmsManagerEmail" class="form-control" disabled placeholder="Manager Email" />
                                     </div>
                                 }
                             </div>
@@ -582,6 +583,7 @@
                                     </div>
                                     <div class="col-md-3 mb-2">
                                         <InputText id="EmpBankIfsc" @bind-Value="model.LmManagerEmpId" class="form-control" disabled placeholder="Manager EmployeeID"/>
+                                        <ValidationMessage For="() => model.LmManagerEmpId" />
                                     </div>
                                     <div class="col-md-4 mb-2">
                                         <InputText id="EmpBankIfsc" @bind-Value="model.LmManagerEmail" class="form-control" disabled placeholder="Manager Email" />
@@ -907,8 +909,9 @@
     protected async Task OnValidSubmit()
     {
         submit = true;
-        if (selectedEMS == null || selectedLM == null)
+        if (model.SharepointPortal == true && (selectedEMS == null || selectedLM == null))
             return;
+
         Message = string.Empty;
         MessageBody = "Thank you!";
         IsError = false;
@@ -1293,13 +1296,18 @@
         updateListItemRequest.LM = model.LM;
         updateListItemRequest.EMS = model.EMS;
         updateListItemRequest.CMS = model.CMS;
-        updateListItemRequest.LMManagerName = selectedLM.EmployeeName;
-        updateListItemRequest.LMManagerEmail = selectedLM.EmailId;
+        if (selectedLM != null)
+        {
+            updateListItemRequest.LMManagerName = selectedLM.EmployeeName;
+            updateListItemRequest.LMManagerEmail = selectedLM.EmailId;
+        }
         // updateListItemRequest.LMManagerID = selectedLM.Id.ToString();
         // updateListItemRequest.ManagerID = selectedEMS.Id.ToString();
-        updateListItemRequest.Manager = selectedEMS.EmployeeName;
-        updateListItemRequest.ManagerEmail = selectedEMS.EmailId;
-
+        if (selectedEMS != null)
+        {
+            updateListItemRequest.Manager = selectedEMS.EmployeeName;
+            updateListItemRequest.ManagerEmail = selectedEMS.EmailId;
+        }
 
         await client.InsertListItem(updateListItemRequest);
     
