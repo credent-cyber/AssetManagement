@@ -11,6 +11,7 @@ namespace AssetManagement.Dto
         public string EmployeeName { get; set; } = string.Empty;
         public string Gender { get; set; } = string.Empty;
         public string Designation { get; set; } = string.Empty;
+        public string AadharNumber { get; set; } = string.Empty;
         public bool IsCMSAdmin { get; set; }
         public DateTime DOB { get; set; }
         public string Location { get; set; } = string.Empty;

@@ -116,12 +116,20 @@ namespace AssetManagement.Server
         {
             try
             {
+                // Check if email exists in Azure AD
+                bool userExists = await UserExistsAsync(request.Email);
+                if (!userExists)
+                {
+                    await CreateGuestUserAsync(request.Email, request.EmployeeName);
+                    Console.WriteLine($"Guest user created with email '{request.Email}'.");
+                }
+
                 // Retrieve items from the first list
                 var items = await _graphClient.Sites["root"].SiteWithPath("/sites/demopoc").Lists[listId].Items
                     .Request()
                     .Header("Prefer", "HonorNonIndexedQueriesWarningMayFailRandomly")
                     .Expand("Fields")
-                    .Filter($"fields/Email eq '{request.Email}'")
+                    .Filter($"fields/AadharNumber eq '{request.AadharNumber}'")
                     .GetAsync();
 
                 // Retrieve items from the second list
@@ -129,7 +137,7 @@ namespace AssetManagement.Server
                     .Request()
                     .Header("Prefer", "HonorNonIndexedQueriesWarningMayFailRandomly")
                     .Expand("Fields")
-                    .Filter($"fields/UserEmail eq '{request.Email}'")
+                    .Filter($"fields/AadharNumber eq '{request.AadharNumber}'")
                     .GetAsync();
 
                 if (items.Count == 1)
@@ -142,6 +150,7 @@ namespace AssetManagement.Server
                             AdditionalData = new Dictionary<string, object>
                             {
                                 { "Gender", request.Gender },
+                                { "AadharNumber", request.AadharNumber },
                                 { "Designation", request.Designation },
                                 { "DOB", new DateTime(request.DOB.Year == 1 ? 1 : request.DOB.Year, request.DOB.Month, request.DOB.Day) },
                                 { "Location", request.Location },
@@ -173,6 +182,7 @@ namespace AssetManagement.Server
                             AdditionalData = new Dictionary<string, object>
                             {
                                 { "Gender", request.Gender },
+                                { "AadharNumber", request.AadharNumber },
                                 { "Designation", request.Designation },
                                 { "DOB", new DateTime(request.DOB.Year == 1 ? 1 : request.DOB.Year, request.DOB.Month, request.DOB.Day) },
                                 { "Location", request.Location },
@@ -206,6 +216,7 @@ namespace AssetManagement.Server
                                 { "LM", request.LM },
                                 { "EMS", request.EMS },
                                 { "CMS", request.CMS },
+                                { "AadharNumber", request.AadharNumber },
                                 { "SitePermission", request.Portal }
                             }
                         }
@@ -229,6 +240,7 @@ namespace AssetManagement.Server
                                 { "LM", request.LM },
                                 { "EMS", request.EMS },
                                 { "CMS", request.CMS },
+                                { "AadharNumber", request.AadharNumber },
                                 { "SitePermission", request.Portal }
                             }
                         }
@@ -237,6 +249,8 @@ namespace AssetManagement.Server
                     var createdGrantApplicationPermissionItem = await _graphClient.Sites["root"].SiteWithPath("/sites/demopoc").Lists[list2Id].Items.Request().AddAsync(grantApplicationPermissionNewItem);
                     Console.WriteLine($"New item inserted with email '{request.Email}' in list2Id.");
                 }
+
+               
 
                 return request;
             }
@@ -248,6 +262,7 @@ namespace AssetManagement.Server
         }
 
 
+
         public async Task<SharepointListUpdate> GetListItemByEmail(string email)
         {
             try
@@ -257,7 +272,7 @@ namespace AssetManagement.Server
                     .Request()
                     .Header("Prefer", "HonorNonIndexedQueriesWarningMayFailRandomly")
                     .Expand("fields")
-                    .Filter($"fields/Email eq '{email}'")
+                    .Filter($"fields/AadharNumber eq '{email}'")
                     .GetAsync();
 
                 // Retrieve items from the second list
@@ -265,7 +280,7 @@ namespace AssetManagement.Server
                     .Request()
                     .Header("Prefer", "HonorNonIndexedQueriesWarningMayFailRandomly")
                     .Expand("fields")
-                    .Filter($"fields/UserEmail eq '{email}'")
+                    .Filter($"fields/AadharNumber eq '{email}'")
                     .GetAsync();
 
                 var sharepointListUpdate = new SharepointListUpdate();
@@ -300,6 +315,34 @@ namespace AssetManagement.Server
                 Console.WriteLine($"Error retrieving item: {ex.Message}");
                 return null;
             }
+        }
+
+        private async Task<bool> UserExistsAsync(string email)
+        {
+            try
+            {
+                var user = await _graphClient.Users[email].Request().GetAsync();
+                return user != null;
+            }
+            catch (ServiceException ex)
+            {
+                if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    return false;
+                throw;
+            }
+        }
+
+        private async Task CreateGuestUserAsync(string email, string displayName)
+        {
+            var invitation = new Invitation
+            {
+                InvitedUserEmailAddress = email,
+                InviteRedirectUrl = "https://credentinfotec.sharepoint.com/sites/intranet/Pages/NewPage.aspx",
+                InvitedUserDisplayName = displayName,
+                SendInvitationMessage = true
+            };
+
+            await _graphClient.Invitations.Request().AddAsync(invitation);
         }
 
     }

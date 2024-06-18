@@ -880,8 +880,9 @@
                 if (employeeFiles.ProfilePhotoFile != "")
                     ProfilePicView = $"{BaseUri}EmployeesZone/{employeeFiles.ProfilePhotoFile}";
             }
-            if(model.EmailId != null){
-                var listData = await client.GetListItemByEmail(model.EmailId);
+            if (model.AadhaarNumber != null)
+            {
+                var listData = await client.GetListItemByEmail(model.AadhaarNumber);
                 model.SharepointPortal = listData.Portal;
                 model.LM = listData.LM;
                 model.EMS = listData.EMS;
@@ -1280,6 +1281,7 @@
 
         updateListItemRequest.EmployeeName = model.EmployeeName;
         updateListItemRequest.Gender = "";
+        updateListItemRequest.AadharNumber = model.AadhaarNumber;
         updateListItemRequest.Designation = model.Designation;
         updateListItemRequest.EmployeeID = model.EmployeeId;
         updateListItemRequest.DOB = model.DateOfBirth;
