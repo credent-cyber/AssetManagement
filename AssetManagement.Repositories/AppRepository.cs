@@ -1,4 +1,5 @@
 ﻿using AssetManagement.DataContext;
+using AssetManagement.DataContext.Migrations;
 using AssetManagement.Dto;
 using AssetManagement.Dto.Dashboard;
 using AssetManagement.Dto.Models;
@@ -848,6 +849,49 @@ namespace AssetManagement.Repositories
             return result;
         }
 
+        #endregion
+
+        #region Shrepoint portal access
+        public async Task<ApiResponse<EmployeePortalSPFX>> GetEmployeeByEmail(string email)
+        {
+            var result = new ApiResponse<EmployeePortalSPFX>();
+            var ed = AppDbCxt.Employee.FirstOrDefault(o => o.EmailId == email);
+            if (ed != null)
+            {
+                var efm = AppDbCxt.EmployeeFilesMapping.FirstOrDefault(o => o.EmployeeId == ed.Id);
+                EmployeePortalSPFX employeePortalSPFX = new EmployeePortalSPFX()
+                {
+                    Name = ed.EmployeeName,
+                    ExternalEmailId = ed.ExternalEmailId,
+                    Email = ed.EmailId,
+                    CompanyCode = ed.CompanyCode,
+                    fatherName = ed.fatherName,
+                    MobileNumber = ed.MobileNumber,
+                    AadhaarNumber = ed.AadhaarNumber,
+                    CurrentAddress = ed.CurrentAddress,
+                    PermanentAddress = ed.PermanentAddress,
+                    PCountry = ed.PCountry,
+                    PState = ed.PState,         
+                    EmpAccountName = ed.EmpAccountName,
+                    EmpBankAccNumber = ed.EmpBankAccNumber,
+                    EmpBankIfsc = ed.EmpBankIfsc,
+                    EmpBankName = ed.EmpBankName,
+                    ProfilePhotoFile = efm == null ? "" : $"https://assetmanagementapplication.azurewebsites.net/EmployeesZone/{efm.ProfilePhotoFile}"
+
+                };
+                result.Result = employeePortalSPFX;
+                result.IsSuccess = true;
+                result.Message = "User found";
+            }
+            else
+            {
+                result.IsSuccess = true;
+                result.Message = "User not found!";
+            }
+
+            return result;
+        }
+        
         #endregion
 
         #region EmployeeSkills
@@ -1722,20 +1766,22 @@ namespace AssetManagement.Repositories
         #region Trasnfer
         public async Task<ApiResponse<Employee>> EmployeeTransfer(EmployeeTransferModel data)
         {
+            int NewEmpId = 0;
             var result = new ApiResponse<Employee>();
-
             try
             {
+                 
                 if (data != null)
                 {
                     var allocations = AppDbCxt.Allocation.Where(a => a.EmployeeId == data.Id).ToList();
-                    if (allocations.Count() > 0)
+                    if (allocations.Count > 0)
                     {
                         foreach (var allocation in allocations)
                         {
-                            var responce = await UnAllocation(allocation.Id);
+                            var response = await UnAllocation(allocation.Id);
                         }
                     }
+
                     var modEmployee = await AppDbCxt.Employee.FirstOrDefaultAsync(a => a.Id == data.Id);
                     if (modEmployee != null)
                     {
@@ -1786,48 +1832,72 @@ namespace AssetManagement.Repositories
                             SecurityStamp = key,
                             ReturnUrl = returnUrl,
                             Designation = modEmployee.Designation
-
-
-
                         };
                         AppDbCxt.Update(employee);
+                        NewEmpId = employee.Id;
                         await AppDbCxt.SaveChangesAsync();
 
-                        if (allocations.Count() > 0)
+                        if (allocations.Count > 0)
                         {
                             foreach (var allocation in allocations)
                             {
-                                var NewAllocation = new Allocation();
+                                var NewAllocation = new Allocation()
+                                {
+                                    AllocationType = allocation.AllocationType,
+                                    IssueDate = DateTime.Now.AddDays(1),
+                                    IssueTill = allocation.IssueTill,
+                                    AssetId = allocation.AssetId,
+                                    AssetModel = allocation.AssetModel,
+                                    AssetType = allocation.AssetType,
+                                    CompanyCode = allocation.CompanyCode,
+                                    CompanyId = allocation.CompanyId,
+                                    IsVerified = allocation.IsVerified,
+                                    Responce = allocation.Responce,
+                                    ReturnDate = allocation.ReturnDate,
+                                    EmployeeId = employee.Id,
+                                    EmployeeCompanyCode = employee.CompanyCode,
+                                    EmployeeName = employee.EmployeeName,
+                                    EmployeeEmail = employee.EmailId,
+                                    BaseUrl = data.BaseUrl
+                                };
 
-                                NewAllocation.AllocationType = allocation.AllocationType;
-                                NewAllocation.IssueDate = DateTime.Now.AddDays(1);
-                                NewAllocation.IssueTill = allocation.IssueTill;
-                                NewAllocation.AssetId = allocation.AssetId;
-                                NewAllocation.AssetModel = allocation.AssetModel;
-                                NewAllocation.AssetType = allocation.AssetType;
-                                NewAllocation.CompanyCode = allocation.CompanyCode;
-                                NewAllocation.CompanyId = allocation.CompanyId;
-
-                                NewAllocation.IsVerified = allocation.IsVerified;
-                                NewAllocation.Responce = allocation.Responce;
-                                NewAllocation.ReturnDate = allocation.ReturnDate;
-
-                                NewAllocation.EmployeeId = employee.Id;
-                                NewAllocation.EmployeeCompanyCode = employee.CompanyCode;
-                                NewAllocation.EmployeeName = employee.EmployeeName;
-                                NewAllocation.EmployeeEmail = employee.EmailId;
-                                NewAllocation.BaseUrl = data.BaseUrl;
-
-                                var responce = await UpsertAllocationAsync(NewAllocation);
+                                var response = await UpsertAllocationAsync(NewAllocation);
                             }
                         }
                         result.Result = employee;
                         result.IsSuccess = true;
-                        result.Message = "Employee Data Transfered Successfully";
-                        return result;
+                        result.Message = "Employee Data Transferred Successfully";
                     }
 
+                    var fileMapping = await AppDbCxt.EmployeeFilesMapping.FirstOrDefaultAsync(e => e.EmployeeId == data.Id);
+                    if (fileMapping != null)
+                    {
+                        string Aadhaar = ReplaceFirstWordAfterHyphen(fileMapping.AadhaarFile, data.NewEmployeeId);
+                        string Pan = ReplaceFirstWordAfterHyphen(fileMapping.PanFile, data.NewEmployeeId);
+                        string BankPassBook = ReplaceFirstWordAfterHyphen(fileMapping.BankPassbookFile, data.NewEmployeeId);
+                        string Cert = ReplaceFirstWordAfterHyphen(fileMapping.CertificateFile, data.NewEmployeeId);
+                        string Profile = ReplaceFirstWordAfterHyphen(fileMapping.ProfilePhotoFile, data.NewEmployeeId);
 
+                        // Copy the files on the file system
+                        CopyFile(fileMapping.AadhaarFile, Aadhaar);
+                        CopyFile(fileMapping.PanFile, Pan);
+                        CopyFile(fileMapping.BankPassbookFile, BankPassBook);
+                        CopyFile(fileMapping.CertificateFile, Cert);
+                        CopyFile(fileMapping.ProfilePhotoFile, Profile);
+
+                        var newFileMapping = new EmployeeFilesMapping
+                        {
+                            EmployeeId = NewEmpId,
+                            AadhaarFile = Aadhaar,
+                            PanFile = Pan,
+                            BankPassbookFile = BankPassBook,
+                            CertificateFile = Cert,
+                            ProfilePhotoFile = Profile
+                        };
+
+                        AppDbCxt.EmployeeFilesMapping.Add(newFileMapping);
+                        await AppDbCxt.SaveChangesAsync();
+                    }
                 }
             }
             catch (Exception ex)
@@ -1838,6 +1908,55 @@ namespace AssetManagement.Repositories
             }
             return result;
         }
+
+        private void CopyFile(string oldFileName, string newFileName)
+        {
+            try
+            {
+                string path;
+//#if DEBUG
+                path = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName + "\\AssetManagement\\Client\\wwwroot\\EmployeesZone";
+//#else
+//        path = Path.Combine(env.ContentRootPath, "wwwroot", "EmployeesZone");
+//#endif
+
+                string oldFilePath = Path.Combine(path, oldFileName);
+                string newFilePath = Path.Combine(path, newFileName);
+
+                if (File.Exists(oldFilePath))
+                {
+                    File.Copy(oldFilePath, newFilePath);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log or handle the error as needed
+            }
+        }
+
+        private string ReplaceFirstWordAfterHyphen(string input, string replacement)
+        {
+            // Split the input string by hyphens
+            string[] parts = input.Split('-');
+
+            // Trim whitespace from each part
+            for (int i = 0; i < parts.Length; i++)
+            {
+                parts[i] = parts[i].Trim();
+            }
+
+            // Check if there are enough parts to replace the first word after the first hyphen
+            if (parts.Length > 1)
+            {
+                // Replace the first word after the first hyphen with the replacement string
+                parts[1] = replacement;
+            }
+
+            // Join the parts back together with hyphens and return the result
+            return string.Join(" - ", parts);
+        }
+
+
 
         public async Task<ApiResponse<Asset>> AssetTransfer(AssetTransferModel data)
         {

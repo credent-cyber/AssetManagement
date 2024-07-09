@@ -7,19 +7,24 @@ using AssetManagement.Server.EmailService;
 using AssetManagement.Server.Intrastructure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
 using Serilog;
-
-
+using System.Configuration;
+using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add environment variables
 builder.Configuration.AddEnvironmentVariables(prefix: "ASPNETCORE_");
 
+// Add appsettings.json files
 builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-            .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true, true);
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true, true);
 
-var config = (IConfiguration)builder.Configuration;
+var config = builder.Configuration;
 
+// Configure Serilog
 builder.Services.AddLogging((builder) =>
 {
     Serilog.Log.Logger = new LoggerConfiguration()
@@ -28,18 +33,45 @@ builder.Services.AddLogging((builder) =>
     builder.AddSerilog();
 });
 
+// Add CORS policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigin",
+        builder => builder.WithOrigins("https://credentinfotec.sharepoint.com")
+                          .AllowAnyHeader()
+                          .AllowAnyMethod());
+});
+
+// Add Swagger services
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Version = "v1",
+        Title = "Asset Management API",
+        Description = "API documentation for Asset Management application"
+    });
+    // Optionally configure Swagger to use the XML comments file if you have it
+    // var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    // var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    // c.IncludeXmlComments(xmlPath);
+});
+
+// Add controllers with OData and NewtonsoftJson support
 builder.Services.AddControllers()
     .AddODataControllers()
     .AddNewtonsoftJson();
 
-//builder.Services.AddSwaggerGen(c =>
-//{
-//    c.SwaggerDoc("v1", new OpenApiInfo { Title = "ODataDemo", Version = "v1" });
-//});
+// Add background service options
+builder.Services.Configure<BackgroundServiceOptions>(config.GetSection("BackgroundService"));
 
+// Add hosted service
+builder.Services.AddHostedService<TimedHostedService>();
 
+// Add HttpContextAccessor
 builder.Services.AddHttpContextAccessor();
 
+// Configure database connections
 var useSqlLite = builder.Configuration.GetValue<bool>("UseSqlLite");
 var sqlLiteAssetAuthConn = builder.Configuration.GetValue<string>("SqlLiteAuthConnectionString");
 var sqlLiteAssetConn = builder.Configuration.GetValue<string>("SqlLiteAssetConnectionString");
@@ -57,7 +89,6 @@ if (useSqlLite)
 }
 else
 {
-
     builder.Services.AddDbContext<AuthDbContext>(options =>
     {
         options.UseMySql(conStringAuth, ServerVersion.AutoDetect(conStringAuth));
@@ -68,10 +99,12 @@ else
     });
 }
 
+// Add Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>()
     .AddEntityFrameworkStores<AuthDbContext>()
     .AddDefaultTokenProviders();
 
+// Configure Identity options
 builder.Services.Configure<IdentityOptions>(options =>
 {
     // Password settings
@@ -91,6 +124,7 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.User.RequireUniqueEmail = true;
 });
 
+// Configure application cookie
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.Cookie.HttpOnly = true;
@@ -101,10 +135,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     };
 });
 
-
-
-
-
+// Add logging
 builder.Services.AddLogging();
 builder.Services.AddScoped<BaseRepository>();
 builder.Services.AddScoped<IAppRepository, AppRepository>();
@@ -113,12 +144,11 @@ builder.Services.AddSingleton(builder.Configuration.GetSection("MailSettings").G
 builder.Services.AddScoped<IMailService, MailService>();
 builder.Services.AddScoped<SharePointService>();
 
-
-//builder.Services.AddControllersWithViews();
+// Add controllers and Razor Pages
 builder.Services.AddControllers();
 builder.Services.AddRazorPages();
 
-
+// Add logging
 builder.Logging.AddDebug();
 builder.Logging.AddConsole();
 
@@ -176,6 +206,11 @@ using (var scope = scopeFactory.CreateScope())
 if (app.Environment.IsDevelopment())
 {
     app.UseWebAssemblyDebugging();
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Asset Management API V1");
+    });
 }
 else
 {
@@ -183,25 +218,17 @@ else
     app.UseHsts();
 }
 
-//app.UseHttpsRedirection();
-
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 app.UseRouting();
 
+app.UseCors("AllowSpecificOrigin");
+
 app.UseAuthentication();
 app.UseAuthorization();
 
-
 app.MapRazorPages();
-
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapControllers();
-
-    endpoints.MapFallbackToFile("index.html");
-});
-
-
+app.MapControllers();
+app.MapFallbackToFile("index.html");
 
 app.Run();

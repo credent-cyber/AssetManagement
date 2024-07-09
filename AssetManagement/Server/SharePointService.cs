@@ -18,11 +18,11 @@ namespace AssetManagement.Server
         private readonly string clientSecret = "9B48Q~xXW4s73XNcUBMAxcb2hX2xzJMUYjwFGa6B";
         string siteid = "Sharepoint Demo";
         string root = "https://credentinfotec.sharepoint.com";
-        private readonly string siteUrl = "https://credentinfotec.sharepoint.com/sites/demopoc";
+        private readonly string siteUrl = "https://credentinfotec.sharepoint.com/sites/intranet";
         string[] scopes = new[] { "https://graph.microsoft.com/.default" };
         GraphServiceClient _graphClient;
-        private readonly string listId = "42d95848-2f80-4133-bd98-73489f635755";
-        private readonly string list2Id = "bc08d9e3-9592-4a34-a927-d8ed6056568e";
+        private readonly string listId = "ca2134e5-e964-4553-981c-7d6be9bb9c8e"; //employee Master
+        private readonly string list2Id = "6081f6ff-d7b6-4440-860f-13f54228b576"; //Grant application permission
         public SharePointService()
         {
             var options = new ClientSecretCredentialOptions()
@@ -75,7 +75,7 @@ namespace AssetManagement.Server
 
             try
             {
-                var createdItem = await _graphClient.Sites["root"].SiteWithPath("/sites/demopoc").Lists[listId].Items.Request().AddAsync(newItem);
+                var createdItem = await _graphClient.Sites["root"].SiteWithPath("/sites/intranet").Lists[listId].Items.Request().AddAsync(newItem);
                 Console.WriteLine($"Dummy item inserted successfully with ID: {createdItem.Id}");
             }
             catch (Exception ex)
@@ -125,19 +125,34 @@ namespace AssetManagement.Server
                 }
 
                 // Retrieve items from the first list
-                var items = await _graphClient.Sites["root"].SiteWithPath("/sites/demopoc").Lists[listId].Items
-                    .Request()
-                    .Header("Prefer", "HonorNonIndexedQueriesWarningMayFailRandomly")
-                    .Expand("Fields")
-                    .Filter($"fields/AadharNumber eq '{request.AadharNumber}'")
-                    .GetAsync();
+                //var items = await _graphClient.Sites["root"].SiteWithPath("/sites/intranet").Lists[listId].Items
+                //    .Request()
+                //    .Header("Prefer", "HonorNonIndexedQueriesWarningMayFailRandomly")
+                //    .Expand("Fields")
+                //    .Filter($"fields/AadharNumber eq '{request.AadharNumber}'")
+                //    .GetAsync();
+
+                //// Retrieve items from the second list
+                //var grantApplicationPermissionItems = await _graphClient.Sites["root"].SiteWithPath("/sites/intranet").Lists[list2Id].Items
+                //    .Request()
+                //    .Header("Prefer", "HonorNonIndexedQueriesWarningMayFailRandomly")
+                //    .Expand("Fields")
+                //    .Filter($"fields/AadharNumber eq '{request.AadharNumber}'")
+                //    .GetAsync();
+
+                var items = await _graphClient.Sites["root"].SiteWithPath("/sites/intranet").Lists[listId].Items
+                   .Request()
+                   .Header("Prefer", "HonorNonIndexedQueriesWarningMayFailRandomly")
+                   .Expand("Fields")
+                   .Filter($"fields/Email eq '{request.Email}'")
+                   .GetAsync();
 
                 // Retrieve items from the second list
-                var grantApplicationPermissionItems = await _graphClient.Sites["root"].SiteWithPath("/sites/demopoc").Lists[list2Id].Items
+                var grantApplicationPermissionItems = await _graphClient.Sites["root"].SiteWithPath("/sites/intranet").Lists[list2Id].Items
                     .Request()
                     .Header("Prefer", "HonorNonIndexedQueriesWarningMayFailRandomly")
                     .Expand("Fields")
-                    .Filter($"fields/AadharNumber eq '{request.AadharNumber}'")
+                    .Filter($"fields/UserEmail eq '{request.Email}'")
                     .GetAsync();
 
                 if (items.Count == 1)
@@ -160,14 +175,20 @@ namespace AssetManagement.Server
                                 { "EmployeeName", request.EmployeeName },
                                 { "EmployeeID", request.EmployeeID },
                                 { "Email", request.Email },
-                                { "ManagerID", request.ManagerID },
-                                { "ManagerEmail", request.ManagerEmail },
+                                //{ "ManagerID", request.ManagerID },
+                                //{ "ManagerEmail", request.ManagerEmail },
+
+                                { "EMSManagerID", request.EMSManagerID },
+                                { "EMSManagerName", request.EMSManagerName },
+                                { "EMSManagerEmail", request.EMSManagerEmail },
+                                { "LMManagerID", request.LMManagerID },
+                                { "LMManagerName", request.LMManagerName },
                                 { "LMManagerEmail", request.LMManagerEmail }
                             }
                         }
                     };
 
-                    await _graphClient.Sites["root"].SiteWithPath("/sites/demopoc").Lists[listId].Items[itemToUpdate.Id]
+                    await _graphClient.Sites["root"].SiteWithPath("/sites/intranet").Lists[listId].Items[itemToUpdate.Id]
                         .Request()
                         .UpdateAsync(updatedItem);
 
@@ -192,14 +213,20 @@ namespace AssetManagement.Server
                                 { "EmployeeName", request.EmployeeName },
                                 { "EmployeeID", request.EmployeeID },
                                 { "Email", request.Email },
-                                { "ManagerID", request.ManagerID },
-                                { "ManagerEmail", request.ManagerEmail },
+                                //{ "ManagerID", request.ManagerID },
+                                //{ "ManagerEmail", request.ManagerEmail },
+
+                                { "EMSManagerID", request.EMSManagerID },
+                                { "EMSManagerName", request.EMSManagerName },
+                                { "EMSManagerEmail", request.EMSManagerEmail },
+                                { "LMManagerID", request.LMManagerID },
+                                { "LMManagerName", request.LMManagerName },
                                 { "LMManagerEmail", request.LMManagerEmail }
                             }
                         }
                     };
 
-                    var createdItem = await _graphClient.Sites["root"].SiteWithPath("/sites/demopoc").Lists[listId].Items.Request().AddAsync(newItem);
+                    var createdItem = await _graphClient.Sites["root"].SiteWithPath("/sites/intranet").Lists[listId].Items.Request().AddAsync(newItem);
                     Console.WriteLine($"New item inserted with email '{request.Email}' in listId.");
                 }
 
@@ -222,7 +249,7 @@ namespace AssetManagement.Server
                         }
                     };
 
-                    await _graphClient.Sites["root"].SiteWithPath("/sites/demopoc").Lists[list2Id].Items[grantApplicationPermissionItemToUpdate.Id]
+                    await _graphClient.Sites["root"].SiteWithPath("/sites/intranet").Lists[list2Id].Items[grantApplicationPermissionItemToUpdate.Id]
                         .Request()
                         .UpdateAsync(grantApplicationPermissionUpdateItems);
 
@@ -246,7 +273,7 @@ namespace AssetManagement.Server
                         }
                     };
 
-                    var createdGrantApplicationPermissionItem = await _graphClient.Sites["root"].SiteWithPath("/sites/demopoc").Lists[list2Id].Items.Request().AddAsync(grantApplicationPermissionNewItem);
+                    var createdGrantApplicationPermissionItem = await _graphClient.Sites["root"].SiteWithPath("/sites/intranet").Lists[list2Id].Items.Request().AddAsync(grantApplicationPermissionNewItem);
                     Console.WriteLine($"New item inserted with email '{request.Email}' in list2Id.");
                 }
 
@@ -268,7 +295,7 @@ namespace AssetManagement.Server
             try
             {
                 // Retrieve items from the first list
-                var items = await _graphClient.Sites["root"].SiteWithPath("/sites/demopoc").Lists[listId].Items
+                var items = await _graphClient.Sites["root"].SiteWithPath("/sites/intranet").Lists[listId].Items
                     .Request()
                     .Header("Prefer", "HonorNonIndexedQueriesWarningMayFailRandomly")
                     .Expand("fields")
@@ -276,7 +303,7 @@ namespace AssetManagement.Server
                     .GetAsync();
 
                 // Retrieve items from the second list
-                var grantApplicationPermissionItems = await _graphClient.Sites["root"].SiteWithPath("/sites/demopoc").Lists[list2Id].Items
+                var grantApplicationPermissionItems = await _graphClient.Sites["root"].SiteWithPath("/sites/intranet").Lists[list2Id].Items
                     .Request()
                     .Header("Prefer", "HonorNonIndexedQueriesWarningMayFailRandomly")
                     .Expand("fields")
@@ -291,7 +318,7 @@ namespace AssetManagement.Server
                     var item = items[0];
 
                     item.Fields.AdditionalData.TryGetValue("ManagerEmail", out var managerEmail);
-                    sharepointListUpdate.ManagerEmail = managerEmail?.ToString();
+                    sharepointListUpdate.EMSManagerEmail = managerEmail?.ToString();
 
                     item.Fields.AdditionalData.TryGetValue("LMManagerEmail", out var lmManagerEmail);
                     sharepointListUpdate.LMManagerEmail = lmManagerEmail?.ToString();

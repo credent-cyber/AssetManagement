@@ -4,6 +4,7 @@ using AssetManagement.Dto.Dashboard;
 using AssetManagement.Dto.Models;
 using AssetManagement.Repositories;
 using AssetManagement.Server.EmailService;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -144,6 +145,20 @@ namespace AssetManagement.Server.Controllers.Api
         {
             return await _appRepository.GetSubOfficeById(id);
         }
+        #endregion
+
+        #region Sharepoint Portal Access
+        [HttpGet]
+        [Route("GetEmployeeByEmail/{email}")]
+        [AllowAnonymous]
+        public async Task<ApiResponse<EmployeePortalSPFX>> GetEmployeeByEmail()
+        {
+            var email = (string)HttpContext.Request.RouteValues["email"];
+            var result = new ApiResponse<EmployeePortalSPFX>();
+            result = await _appRepository.GetEmployeeByEmail(email);
+            return result;
+        }
+
         #endregion
 
         #region Employee

@@ -21,9 +21,9 @@ namespace AssetManagement.Dto
         public string Status { get; set; } = string.Empty;
         public string ? Department { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-        public string ManagerID { get; set; } = string.Empty;
-        public string Manager { get; set; } = string.Empty;
-        public string ManagerEmail { get; set; } = string.Empty;
+        public string EMSManagerID { get; set; } = string.Empty;
+        public string EMSManagerName { get; set; } = string.Empty;
+        public string EMSManagerEmail { get; set; } = string.Empty;
         public int MonthNo { get; set; }
         public int LeaveBalanceWF { get; set; }
         public string HOD { get; set; } = string.Empty;

@@ -804,7 +804,7 @@
         SkillOptions = new List<EmployeeSkills>(await client.GetAllSkill());
         company = new List<Company>(await client.GetAllCompany());
         employee = new List<Employee>(await client.GetAllEmployee());
-        
+
         if (Key != null)
         {
             var responce = await client.GetOnboardingDataById(Key);
@@ -890,7 +890,7 @@
                 model.EMS = listData.EMS;
                 model.CMS = listData.CMS;
                 selectedLM = employee.Where(x=>x.EmailId == listData.LMManagerEmail).FirstOrDefault();
-                selectedEMS = employee.Where(x => x.EmailId == listData.ManagerEmail).FirstOrDefault();
+                selectedEMS = employee.Where(x => x.EmailId == listData.EMSManagerEmail).FirstOrDefault();
             }
 
         }
@@ -1289,7 +1289,7 @@
         updateListItemRequest.EmployeeID = model.EmployeeId;
         updateListItemRequest.DOB = model.DateOfBirth;
         updateListItemRequest.DateOfJoining = model.DateOfJoin;
-        updateListItemRequest.Status = model.Status.ToString();
+        updateListItemRequest.Status = model.Status != EmployeeStatus.Resigned ? "Active" : "InActive";
         updateListItemRequest.Department = model.Department;
         updateListItemRequest.Email = model.EmailId;
         updateListItemRequest.Portal = model.SharepointPortal;
@@ -1299,17 +1299,19 @@
         if (selectedLM != null)
         {
             updateListItemRequest.LMManagerName = selectedLM.EmployeeName;
+            updateListItemRequest.LMManagerID = selectedLM.EmployeeId;
             updateListItemRequest.LMManagerEmail = selectedLM.EmailId;
         }
         // updateListItemRequest.LMManagerID = selectedLM.Id.ToString();
         // updateListItemRequest.ManagerID = selectedEMS.Id.ToString();
         if (selectedEMS != null)
         {
-            updateListItemRequest.Manager = selectedEMS.EmployeeName;
-            updateListItemRequest.ManagerEmail = selectedEMS.EmailId;
+            updateListItemRequest.EMSManagerName = selectedEMS.EmployeeName;
+            updateListItemRequest.EMSManagerID = selectedEMS.EmployeeId;
+            updateListItemRequest.EMSManagerEmail = selectedEMS.EmailId;
         }
 
-        await client.InsertListItem(updateListItemRequest);
+       // await client.InsertListItem(updateListItemRequest);
     
     }
 }
