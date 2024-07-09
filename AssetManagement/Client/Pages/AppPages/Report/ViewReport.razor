@@ -93,7 +93,7 @@
                             <div class="col-md-3">
                                 <MudGrid>
                                     <MudItem xs="12" sm="12" md="12">
-                                        <MudAutocomplete T="string" Label="Branch" @bind-Value="selectedBranch" SearchFunc="@BranchSearch" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                        <MudAutocomplete T="string" Label="Office Branch" @bind-Value="selectedBranch" SearchFunc="@BranchSearch" Variant="Variant.Outlined" Margin="Margin.Dense"
                                                          ToStringFunc="@(e => e == null ? null : $"{e}")"
                                                          Required="false"
                                                          ResetValueOnEmptyText="true"
@@ -283,6 +283,7 @@
                                 <td>SN.</td>
                                 <td>Company</td>
                                 <td>EmployeeID</td>
+                                <td>Status</td>
                                 <td>Name</td>
                                 <td>Father</td>
                                 <td>Email</td>
@@ -316,6 +317,7 @@
                                         <td>@counter</td>
                                         <td>@r.CompanyCode</td>
                                         <td>@r.EmployeeId</td>
+                                        <td>@r.Status</td>
                                         <td>@r.EmployeeName</td>
                                         <td>@r.fatherName</td>
                                         <td>@r.EmailId</td>
@@ -718,8 +720,8 @@
         selectedLocation = null;
         selectedSkills = null;
         selectedEmployeeStatus = "All";
-        _dateOfJoinPicker.Clear();
-        _resignDatePicker.Clear();
+        _dateOfJoinPicker = new();
+        _resignDatePicker = new();
 
     }
 

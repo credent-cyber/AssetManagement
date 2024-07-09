@@ -891,7 +891,38 @@ namespace AssetManagement.Repositories
 
             return result;
         }
-        
+
+        public async Task<ApiResponse<EmployeePortalSPFX>> UpdateEmployeeByEmail(EmployeePortalSPFX employeePortalSPFX)
+        {
+            var result = new ApiResponse<EmployeePortalSPFX>();
+            try
+            {
+                var ed = AppDbCxt.Employee.FirstOrDefault(o => o.EmailId == employeePortalSPFX.Email);
+                if (ed != null)
+                {
+                  ed.EmpAccountName = employeePortalSPFX.EmpAccountName;
+                  ed.EmpBankAccNumber = employeePortalSPFX.EmpBankAccNumber;
+                  ed.EmpBankName = employeePortalSPFX.EmpBankName;
+                  ed.EmpBankIfsc = employeePortalSPFX.EmpBankIfsc;
+
+                  ed.CurrentAddress = employeePortalSPFX.CurrentAddress;
+                  ed.PermanentAddress = employeePortalSPFX.PermanentAddress;
+                  ed.MobileNumber = employeePortalSPFX.MobileNumber;
+
+                   AppDbCxt.Employee.Update(ed);
+              
+                }
+                AppDbCxt.SaveChanges();
+                result.IsSuccess = true;
+                result.Message = "Successfully Updated!";
+            }
+            catch(Exception ex)
+            {
+                result.IsSuccess = false;
+                result.Message = ex.Message;
+            }
+            return result;
+        }
         #endregion
 
         #region EmployeeSkills
@@ -2049,7 +2080,7 @@ namespace AssetManagement.Repositories
                 if (model.EmployeeStatus == "Resigned")
                     employeeData = employeeData.Where(c => c.Status == EmployeeStatus.Resigned).ToList();
                 if (model.EmployeeStatus == "Active")
-                    employeeData = employeeData.Where(c => c.Status == EmployeeStatus.Permanent).ToList();
+                    employeeData = employeeData.Where(c => c.Status == EmployeeStatus.Permanent || c.Status == EmployeeStatus.Probation || c.Status == EmployeeStatus.Temporary).ToList();
                 if (model.Company != null)
                     employeeData = employeeData.Where(c => c.CompanyCode == model.Company).ToList();
 

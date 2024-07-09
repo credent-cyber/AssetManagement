@@ -503,8 +503,8 @@
                                 </div>
                             </div>
                         </MudExpansionPanel>
-                       
-                        <MudExpansionPanel Text="Permission" MaxHeight="500" Class="custom-header">
+
+                        <MudExpansionPanel Text="Permission" MaxHeight="500" Class="custom-header" IsExpanded="true">
                             <div class="form-group row">
                                 <label class="col-form-label col-md-1 bold-font">Portal</label>
                                 <div class="col-md-1 mb-2">
@@ -527,7 +527,7 @@
                                     <input type="checkbox" @bind="model.EMS" class="form-check-input mt-2"  disabled/>
                                 </div>
                                 @if(model.EMS){
-                                    <div class="col-md-3 mb-2">
+                                    <div class="col-md-3 mb-2" style="margin-top:-3px">
                                         <MudGrid>
                                             <MudItem xs="12" sm="6" md="12">
                                                 <MudAutocomplete T="Employee" Label="Select Manager" @bind-Value="selectedEMS" SearchFunc="@EmsSearch" Variant="Variant.Outlined" Margin="Margin.Dense"
@@ -536,6 +536,7 @@
                                                                  ResetValueOnEmptyText="true"
                                                                  CoerceText="true"
                                                                  CoerceValue="true"
+                                                                 
                                                                  MaxItems="null">
                                                 </MudAutocomplete>
                                             </MudItem>
@@ -565,7 +566,7 @@
                                 </div>
                                   @if(model.LM)
                                   {
-                                    <div class="col-md-3 mb-2">
+                                    <div class="col-md-3 mb-2" style="margin-top:-3px">
                                         <MudGrid>
                                             <MudItem xs="12" sm="6" md="12">
                                                 <MudAutocomplete T="Employee" Label="Select Manager" @bind-Value="selectedLM" SearchFunc="@EmsSearch" Variant="Variant.Outlined" Margin="Margin.Dense"

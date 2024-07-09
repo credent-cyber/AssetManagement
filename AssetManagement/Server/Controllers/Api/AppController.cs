@@ -158,7 +158,15 @@ namespace AssetManagement.Server.Controllers.Api
             result = await _appRepository.GetEmployeeByEmail(email);
             return result;
         }
-
+        [HttpPost]
+        [Route("UpdateEmployeeByEmail")]
+        [AllowAnonymous]
+        public async Task<ApiResponse<EmployeePortalSPFX>> UpdateEmployeeByEmail(EmployeePortalSPFX employeePortalSPFX)
+        {
+            var result = new ApiResponse<EmployeePortalSPFX>();
+            result = await _appRepository.UpdateEmployeeByEmail(employeePortalSPFX);
+            return result;
+        }
         #endregion
 
         #region Employee
