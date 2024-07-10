@@ -1803,11 +1803,10 @@ namespace AssetManagement.Repositories
         #region Trasnfer
         public async Task<ApiResponse<Employee>> EmployeeTransfer(EmployeeTransferModel data)
         {
-            int NewEmpId = 0;
+            int newEmpId = 0;
             var result = new ApiResponse<Employee>();
             try
             {
-                 
                 if (data != null)
                 {
                     var allocations = AppDbCxt.Allocation.Where(a => a.EmployeeId == data.Id).ToList();
@@ -1870,15 +1869,16 @@ namespace AssetManagement.Repositories
                             ReturnUrl = returnUrl,
                             Designation = modEmployee.Designation
                         };
-                        AppDbCxt.Update(employee);
-                        NewEmpId = employee.Id;
-                        await AppDbCxt.SaveChangesAsync();
+
+                        AppDbCxt.Employee.Add(employee);
+                        await AppDbCxt.SaveChangesAsync(); // Save to get the generated Id
+                        newEmpId = employee.Id;
 
                         if (allocations.Count > 0)
                         {
                             foreach (var allocation in allocations)
                             {
-                                var NewAllocation = new Allocation()
+                                var newAllocation = new Allocation()
                                 {
                                     AllocationType = allocation.AllocationType,
                                     IssueDate = DateTime.Now.AddDays(1),
@@ -1898,42 +1898,43 @@ namespace AssetManagement.Repositories
                                     BaseUrl = data.BaseUrl
                                 };
 
-                                var response = await UpsertAllocationAsync(NewAllocation);
+                                var response = await UpsertAllocationAsync(newAllocation);
                             }
                         }
+
                         result.Result = employee;
                         result.IsSuccess = true;
                         result.Message = "Employee Data Transferred Successfully";
-                    }
 
-                    var fileMapping = await AppDbCxt.EmployeeFilesMapping.FirstOrDefaultAsync(e => e.EmployeeId == data.Id);
-                    if (fileMapping != null)
-                    {
-                        string Aadhaar = ReplaceFirstWordAfterHyphen(fileMapping.AadhaarFile, data.NewEmployeeId);
-                        string Pan = ReplaceFirstWordAfterHyphen(fileMapping.PanFile, data.NewEmployeeId);
-                        string BankPassBook = ReplaceFirstWordAfterHyphen(fileMapping.BankPassbookFile, data.NewEmployeeId);
-                        string Cert = ReplaceFirstWordAfterHyphen(fileMapping.CertificateFile, data.NewEmployeeId);
-                        string Profile = ReplaceFirstWordAfterHyphen(fileMapping.ProfilePhotoFile, data.NewEmployeeId);
-
-                        // Copy the files on the file system
-                        CopyFile(fileMapping.AadhaarFile, Aadhaar);
-                        CopyFile(fileMapping.PanFile, Pan);
-                        CopyFile(fileMapping.BankPassbookFile, BankPassBook);
-                        CopyFile(fileMapping.CertificateFile, Cert);
-                        CopyFile(fileMapping.ProfilePhotoFile, Profile);
-
-                        var newFileMapping = new EmployeeFilesMapping
+                        var fileMapping = await AppDbCxt.EmployeeFilesMapping.FirstOrDefaultAsync(e => e.EmployeeId == data.Id);
+                        if (fileMapping != null)
                         {
-                            EmployeeId = NewEmpId,
-                            AadhaarFile = Aadhaar,
-                            PanFile = Pan,
-                            BankPassbookFile = BankPassBook,
-                            CertificateFile = Cert,
-                            ProfilePhotoFile = Profile
-                        };
+                            string Aadhaar = ReplaceFirstWordAfterHyphen(fileMapping.AadhaarFile, data.NewEmployeeId);
+                            string Pan = ReplaceFirstWordAfterHyphen(fileMapping.PanFile, data.NewEmployeeId);
+                            string BankPassBook = ReplaceFirstWordAfterHyphen(fileMapping.BankPassbookFile, data.NewEmployeeId);
+                            string Cert = ReplaceFirstWordAfterHyphen(fileMapping.CertificateFile, data.NewEmployeeId);
+                            string Profile = ReplaceFirstWordAfterHyphen(fileMapping.ProfilePhotoFile, data.NewEmployeeId);
 
-                        AppDbCxt.EmployeeFilesMapping.Add(newFileMapping);
-                        await AppDbCxt.SaveChangesAsync();
+                            // Copy the files on the file system
+                            CopyFile(fileMapping.AadhaarFile, Aadhaar);
+                            CopyFile(fileMapping.PanFile, Pan);
+                            CopyFile(fileMapping.BankPassbookFile, BankPassBook);
+                            CopyFile(fileMapping.CertificateFile, Cert);
+                            CopyFile(fileMapping.ProfilePhotoFile, Profile);
+
+                            var newFileMapping = new EmployeeFilesMapping
+                            {
+                                EmployeeId = newEmpId, // Use the newly generated Id
+                                AadhaarFile = Aadhaar,
+                                PanFile = Pan,
+                                BankPassbookFile = BankPassBook,
+                                CertificateFile = Cert,
+                                ProfilePhotoFile = Profile
+                            };
+
+                            AppDbCxt.EmployeeFilesMapping.Add(newFileMapping);
+                            await AppDbCxt.SaveChangesAsync();
+                        }
                     }
                 }
             }
@@ -1945,6 +1946,7 @@ namespace AssetManagement.Repositories
             }
             return result;
         }
+
 
         private void CopyFile(string oldFileName, string newFileName)
         {
