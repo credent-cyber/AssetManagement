@@ -910,11 +910,17 @@ namespace AssetManagement.Repositories
                   ed.MobileNumber = employeePortalSPFX.MobileNumber;
 
                    AppDbCxt.Employee.Update(ed);
-              
+                   AppDbCxt.SaveChanges();
+                   result.IsSuccess = true;
+                   result.Message = "Successfully Updated!";
+
                 }
-                AppDbCxt.SaveChanges();
-                result.IsSuccess = true;
-                result.Message = "Successfully Updated!";
+                else
+                {
+                    result.IsSuccess = false;
+                    result.Message = "User email not found.";
+                }
+            
             }
             catch(Exception ex)
             {
