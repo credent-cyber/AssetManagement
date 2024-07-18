@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -50,5 +51,12 @@ namespace AssetManagement.Dto.Models
         public DateTime DateOfJoin { get; set; } = DateTime.Now;
         public string CompanyName { get; set; } = string.Empty;
         public string? OtherSkills { get; set; }
+        
+        //[NotMapped]
+        //public bool? MailToHr { get; set; }
+        //[NotMapped]
+        //public bool? MailToManager { get; set; }
+        //[NotMapped]
+        //public bool? MailToAccounts { get; set; }
     }
 }

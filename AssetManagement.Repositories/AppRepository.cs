@@ -903,7 +903,7 @@ namespace AssetManagement.Repositories
                   ed.EmpAccountName = employeePortalSPFX.EmpAccountName;
                   ed.EmpBankAccNumber = employeePortalSPFX.EmpBankAccNumber;
                   ed.EmpBankName = employeePortalSPFX.EmpBankName;
-                  ed.EmpBankIfsc = employeePortalSPFX.EmpBankIfsc;
+                  ed.EmpBankIfsc = employeePortalSPFX.EmpBankIfsc; 
 
                   ed.CurrentAddress = employeePortalSPFX.CurrentAddress;
                   ed.PermanentAddress = employeePortalSPFX.PermanentAddress;

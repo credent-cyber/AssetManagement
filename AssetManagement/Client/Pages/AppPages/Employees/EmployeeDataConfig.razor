@@ -524,9 +524,10 @@
                             <div class="form-group row">
                                 <label class="col-form-label col-md-1 bold-font required-field">EMS</label>
                                 <div class="col-md-1 mb-2">
-                                    <input type="checkbox" @bind="model.EMS" class="form-check-input mt-2"  disabled/>
+                                    <input type="checkbox" @bind="model.EMS" class="form-check-input mt-2" disabled />
                                 </div>
-                                @if(model.EMS){
+                                @if (model.EMS)
+                                {
                                     <div class="col-md-3 mb-2" style="margin-top:-3px">
                                         <MudGrid>
                                             <MudItem xs="12" sm="6" md="12">
@@ -536,12 +537,11 @@
                                                                  ResetValueOnEmptyText="true"
                                                                  CoerceText="true"
                                                                  CoerceValue="true"
-                                                                 
                                                                  MaxItems="null">
                                                 </MudAutocomplete>
                                             </MudItem>
                                         </MudGrid>
-                                        @if(selectedEMS!=null){model.EmsManagerEmpId = selectedEMS.EmployeeId; model.EmsManagerEmail = selectedEMS.EmailId; }
+                                        @if (selectedEMS != null) { model.EmsManagerEmpId = selectedEMS.EmployeeId; model.EmsManagerEmail = selectedEMS.EmailId; }
                                         else
                                         {
                                             if (submit)
@@ -564,8 +564,8 @@
                                 <div class="col-md-1 mb-2">
                                     <input type="checkbox" @bind="model.LM" class="form-check-input mt-2" disabled />
                                 </div>
-                                  @if(model.LM)
-                                  {
+                                @if (model.LM)
+                                {
                                     <div class="col-md-3 mb-2" style="margin-top:-3px">
                                         <MudGrid>
                                             <MudItem xs="12" sm="6" md="12">
@@ -580,10 +580,16 @@
                                             </MudItem>
                                         </MudGrid>
                                         @if (selectedLM != null) { model.LmManagerEmpId = selectedLM.EmployeeId; model.LmManagerEmail = selectedLM.EmailId; }
-                                        else{if(submit){ <p style="color:red">Please select email</p> }}
+                                        else
+                                        {
+                                            if (submit)
+                                            {
+                                                <p style="color:red">Please select email</p>
+                                            }
+                                        }
                                     </div>
                                     <div class="col-md-3 mb-2">
-                                        <InputText id="EmpBankIfsc" @bind-Value="model.LmManagerEmpId" class="form-control" disabled placeholder="Manager EmployeeID"/>
+                                        <InputText id="EmpBankIfsc" @bind-Value="model.LmManagerEmpId" class="form-control" disabled placeholder="Manager EmployeeID" />
                                         <ValidationMessage For="() => model.LmManagerEmpId" />
                                     </div>
                                     <div class="col-md-4 mb-2">
@@ -597,7 +603,7 @@
                                     <input type="checkbox" @bind="model.CMS" class="form-check-input mt-2" />
                                 </div>
                             </div>
-                            
+
                         </MudExpansionPanel>
                     </MudExpansionPanels>
 
@@ -890,7 +896,7 @@
                 model.LM = listData.LM;
                 model.EMS = listData.EMS;
                 model.CMS = listData.CMS;
-                selectedLM = employee.Where(x=>x.EmailId == listData.LMManagerEmail).FirstOrDefault();
+                selectedLM = employee.Where(x => x.EmailId == listData.LMManagerEmail).FirstOrDefault();
                 selectedEMS = employee.Where(x => x.EmailId == listData.EMSManagerEmail).FirstOrDefault();
             }
 
@@ -1003,7 +1009,7 @@
 
 
                 }
-                if(EmailRequest)
+                if (EmailRequest)
                 {
                     await SendRequestToCreateEmail();
                 }
@@ -1265,7 +1271,7 @@
         if (string.IsNullOrEmpty(value))
             return employee.Where(o => o.Status != EmployeeStatus.Resigned);
 
-        return employee.Where(o =>o.Status != EmployeeStatus.Resigned)
+        return employee.Where(o => o.Status != EmployeeStatus.Resigned)
             .Where(x => x.EmployeeId.Contains(value, StringComparison.InvariantCultureIgnoreCase) || x.EmployeeName.Contains(value, StringComparison.InvariantCultureIgnoreCase));
     }
     public async Task SendRequestToCreateEmail()
@@ -1282,38 +1288,45 @@
     SharepointListUpdate updateListItemRequest = new();
     private async Task AddItem()
     {
-
-        updateListItemRequest.EmployeeName = model.EmployeeName;
-        updateListItemRequest.Gender = "";
-        updateListItemRequest.AadharNumber = model.AadhaarNumber;
-        updateListItemRequest.Designation = model.Designation;
-        updateListItemRequest.EmployeeID = model.EmployeeId;
-        updateListItemRequest.DOB = model.DateOfBirth;
-        updateListItemRequest.DateOfJoining = model.DateOfJoin;
-        updateListItemRequest.Status = model.Status != EmployeeStatus.Resigned ? "Active" : "InActive";
-        updateListItemRequest.Department = model.Department;
-        updateListItemRequest.Email = model.EmailId;
-        updateListItemRequest.Portal = model.SharepointPortal;
-        updateListItemRequest.LM = model.LM;
-        updateListItemRequest.EMS = model.EMS;
-        updateListItemRequest.CMS = model.CMS;
-        if (selectedLM != null)
+        try
         {
-            updateListItemRequest.LMManagerName = selectedLM.EmployeeName;
-            updateListItemRequest.LMManagerID = selectedLM.EmployeeId;
-            updateListItemRequest.LMManagerEmail = selectedLM.EmailId;
+
+            updateListItemRequest.EmployeeName = model.EmployeeName;
+            updateListItemRequest.Gender = "";
+            updateListItemRequest.AadharNumber = model.AadhaarNumber;
+            updateListItemRequest.Designation = model.Designation;
+            updateListItemRequest.EmployeeID = model.EmployeeId;
+            updateListItemRequest.DOB = model.DateOfBirth;
+            updateListItemRequest.DateOfJoining = model.DateOfJoin;
+            updateListItemRequest.Status = model.Status != EmployeeStatus.Resigned ? "Active" : "InActive";
+            updateListItemRequest.Department = model.Department;
+            updateListItemRequest.Email = model.EmailId;
+            updateListItemRequest.Portal = model.SharepointPortal;
+            updateListItemRequest.LM = model.LM;
+            updateListItemRequest.EMS = model.EMS;
+            updateListItemRequest.CMS = model.CMS;
+            if (selectedLM != null)
+            {
+                updateListItemRequest.LMManagerName = selectedLM.EmployeeName;
+                updateListItemRequest.LMManagerID = selectedLM.EmployeeId;
+                updateListItemRequest.LMManagerEmail = selectedLM.EmailId;
+            }
+            // updateListItemRequest.LMManagerID = selectedLM.Id.ToString();
+            // updateListItemRequest.ManagerID = selectedEMS.Id.ToString();
+            if (selectedEMS != null)
+            {
+                updateListItemRequest.EMSManagerName = selectedEMS.EmployeeName;
+                updateListItemRequest.EMSManagerID = selectedEMS.EmployeeId;
+                updateListItemRequest.EMSManagerEmail = selectedEMS.EmailId;
+            }
+
+            await client.InsertListItem(updateListItemRequest);
         }
-        // updateListItemRequest.LMManagerID = selectedLM.Id.ToString();
-        // updateListItemRequest.ManagerID = selectedEMS.Id.ToString();
-        if (selectedEMS != null)
+        catch (Exception ex)
         {
-            updateListItemRequest.EMSManagerName = selectedEMS.EmployeeName;
-            updateListItemRequest.EMSManagerID = selectedEMS.EmployeeId;
-            updateListItemRequest.EMSManagerEmail = selectedEMS.EmailId;
+
         }
 
-       // await client.InsertListItem(updateListItemRequest);
-    
     }
 }
 

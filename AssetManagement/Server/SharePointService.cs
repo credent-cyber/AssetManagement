@@ -21,7 +21,7 @@ namespace AssetManagement.Server
         private readonly string siteUrl = "https://credentinfotec.sharepoint.com/sites/intranet";
         string[] scopes = new[] { "https://graph.microsoft.com/.default" };
         GraphServiceClient _graphClient;
-        private readonly string listId = "ca2134e5-e964-4553-981c-7d6be9bb9c8e"; //employee Master
+        private readonly string listId = "ca2134e5-e964-4553-981c-7d6be9bb9c8e"; //employee Master 
         private readonly string list2Id = "6081f6ff-d7b6-4440-860f-13f54228b576"; //Grant application permission
         public SharePointService()
         {
@@ -175,6 +175,7 @@ namespace AssetManagement.Server
                                 { "EmployeeName", request.EmployeeName },
                                 { "EmployeeID", request.EmployeeID },
                                 { "Email", request.Email },
+
                                 //{ "ManagerID", request.ManagerID },
                                 //{ "ManagerEmail", request.ManagerEmail },
 
@@ -213,6 +214,7 @@ namespace AssetManagement.Server
                                 { "EmployeeName", request.EmployeeName },
                                 { "EmployeeID", request.EmployeeID },
                                 { "Email", request.Email },
+
                                 //{ "ManagerID", request.ManagerID },
                                 //{ "ManagerEmail", request.ManagerEmail },
 
@@ -313,11 +315,11 @@ namespace AssetManagement.Server
                 var sharepointListUpdate = new SharepointListUpdate();
 
                 // Check and retrieve data from the first list
-                if (items.Count == 1)
+                if (items.Count >= 1)
                 {
                     var item = items[0];
 
-                    item.Fields.AdditionalData.TryGetValue("ManagerEmail", out var managerEmail);
+                    item.Fields.AdditionalData.TryGetValue("EMSManagerEmail", out var managerEmail);
                     sharepointListUpdate.EMSManagerEmail = managerEmail?.ToString();
 
                     item.Fields.AdditionalData.TryGetValue("LMManagerEmail", out var lmManagerEmail);
@@ -325,7 +327,7 @@ namespace AssetManagement.Server
                 }
 
                 // Check and retrieve data from the second list
-                if (grantApplicationPermissionItems.Count == 1)
+                if (grantApplicationPermissionItems.Count >= 1)
                 {
                     var grantApplicationPermissionItem = grantApplicationPermissionItems[0];
                     sharepointListUpdate.Portal = bool.TryParse(grantApplicationPermissionItem.Fields.AdditionalData["SitePermission"]?.ToString(), out bool sp) ? sp : false;
