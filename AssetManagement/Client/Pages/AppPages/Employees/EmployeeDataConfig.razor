@@ -9,6 +9,7 @@
 @using System.Text.Json;
 @using System.Text.RegularExpressions;
 @using Microsoft.AspNetCore.Components.Forms
+@using MudBlazor
 @inject AppClient client
 @inject HttpClient _httpClient
 @inject ILogger<EmployeeDataConfig> logger
@@ -78,6 +79,11 @@
                             <InputText id="fatherName" @bind-Value="model.fatherName" class="form-control" />
                             <ValidationMessage For="() => model.fatherName" />
                         </div>
+                        <label class="col-form-label col-md-1 bold-font">UAN No</label>
+                        <div class="col-md-3">
+                            <InputText id="UANNo" @bind-Value="model.UANNo" class="form-control" />
+                            <ValidationMessage For="() => model.UANNo" />
+                        </div>
                     </div>
 
                     <div class="form-group row mb-2">
@@ -135,21 +141,44 @@
 
                     <div class="form-group row mb-2">
                         <label class="col-form-label col-md-2 bold-font required-field">Reporting To</label>
-                        <div class="col-md-2">
-                            <InputText id="ReportingTo" @bind-Value="model.ReportingTo" class="form-control" />
+                        <div class="col-md-4">
+                            <MudGrid>
+                                <MudItem xs="12" sm="12" md="12">
+                                    <MudAutocomplete Label="Select" T="Employee" @bind-Value="selectedManager" SearchFunc="@ManagerSearch" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                     ToStringFunc="@(e => e == null ? null : $"{e.EmployeeName} ({e.EmailId})")"
+                                                     Required="false"
+                                                     ResetValueOnEmptyText="true"
+                                                     CoerceText="true"
+                                                     CoerceValue="true"
+                                                     MaxItems="null">
+                                                  
+                                    </MudAutocomplete>
+                                </MudItem>
+                            </MudGrid>
+                            @if (selectedManager != null) { model.ReportingTo = selectedManager.ReportingTo; }
                             <ValidationMessage For="() => model.ReportingTo" />
                         </div>
 
                         <label class="col-form-label col-md-2 bold-font required-field">Designation</label>
-                        <div class="col-md-2">
-                            <InputText id="Designation" @bind-Value="model.Designation" class="form-control" />
+                        <div class="col-md-3">
+                            <MudGrid>
+                                <MudItem xs="12" sm="12" md="12">
+                                    <MudAutocomplete Label="Select" T="DesignationDTO" @bind-Value="selectedDesigantion" SearchFunc="@DesignationSearch" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                     ToStringFunc="@(e => e == null ? null : $"{e.Designation} ({e.Designation})")"
+                                                     Required="false"
+                                                     ResetValueOnEmptyText="true"
+                                                     CoerceText="true"
+                                                     CoerceValue="true"
+                                                     MaxItems="null">
+                                              
+                                    </MudAutocomplete>
+                                </MudItem>
+                            </MudGrid>
+                            @if (selectedDesigantion != null) { model.Designation = selectedDesigantion.Designation; }
                             <ValidationMessage For="() => model.Designation" />
                         </div>
-
-                        <label class="col-form-label col-md-1 bold-font">UAN No</label>
-                        <div class="col-md-3">
-                            <InputText id="UANNo" @bind-Value="model.UANNo" class="form-control" />
-                            <ValidationMessage For="() => model.UANNo" />
+                         <div class="col-md-1">
+                            <a type="button" class="btn btn-primary" @onclick="(() => AddDesigntions = true)" style="margin-top:5px;">Add</a>
                         </div>
                     </div>
 
@@ -505,6 +534,10 @@
                         </MudExpansionPanel>
 
                         <MudExpansionPanel Text="Permission" MaxHeight="500" Class="custom-header" IsExpanded="true">
+                            <span class="bold-font">Sharepoint Sync is @(model.SharepointSync ? "On" : "Off")</span>
+                            <MudToggleIconButton @bind-Toggled="@model.SharepointSync"
+                                                 Icon="@Icons.Material.Filled.AlarmOff" Color="@Color.Error" title=@(@model.SharepointSync ? "On" : "Off")
+                                                 ToggledIcon="@Icons.Material.Filled.AlarmOn" ToggledColor="@Color.Success" />
                             <div class="form-group row">
                                 <label class="col-form-label col-md-1 bold-font">Portal</label>
                                 <div class="col-md-1 mb-2">
@@ -634,6 +667,10 @@
                     <AddSkillComponent />
                 </PageDialog>
 
+                <PageDialog Title="Add Designtions" Show="AddDesigntions" ClosePageDialog="ClosePopUp">
+                    <AddDesignationComponent />
+                </PageDialog>
+
                 <FilePreviewDailog Title="Preview" Show="ShowPreview" ClosePreview="ClosePreview">
                     <div style="width: 100%; overflow: auto;">
                         @if (IsImageFile(filePath))
@@ -661,16 +698,18 @@
 
 @code {
 
-    [Parameter]
-    public int Id { get; set; }
-    [Parameter]
-    public string Key { get; set; }
-    [Parameter]
-    public DateTime date { get; set; }
+        [Parameter]
+        public int Id { get; set; }
+        [Parameter]
+        public string Key { get; set; }
+        [Parameter]
+        public DateTime date { get; set; }
 
-    bool EmailRequest = false;
+        bool EmailRequest = false;
     private IEnumerable<dynamic> listItems;
     bool submit = false;
+    private DesignationDTO? selectedDesigantion { get; set; }
+    private Employee? selectedManager { get; set; }
 
     private bool IsImageFile(string filePath)
     {
@@ -692,6 +731,7 @@
 
     string filePath = string.Empty;
     public bool AddSkill = false;
+    public bool AddDesigntions = false;
     public bool ShowPreview = false;
     Dictionary<int, List<int>> EmployeeSkillIds = new Dictionary<int, List<int>>();
     private List<int> SelectedSkill { get; set; } = new();
@@ -710,6 +750,7 @@
     bool TaskCompleted = false;
     Employee model = new();
     List<Company> company = new();
+    List<DesignationDTO> designation = new();
     List<EmployeeSkills> SkillOptions = new();
     List<Employee> employee = new();
     EmployeeFilesMapping employeeFiles = new();
@@ -811,6 +852,7 @@
         SkillOptions = new List<EmployeeSkills>(await client.GetAllSkill());
         company = new List<Company>(await client.GetAllCompany());
         employee = new List<Employee>(await client.GetAllEmployee());
+        designation = new List<DesignationDTO>(await client.GetAllDesignations());
 
         if (Key != null)
         {
@@ -1089,6 +1131,7 @@
     {
         show = false;
         AddSkill = false;
+        AddDesigntions = false;
         ShowPreview = false;
         SkillOptions = new List<EmployeeSkills>(await client.GetAllSkill());
         StateHasChanged();
@@ -1320,13 +1363,32 @@
                 updateListItemRequest.EMSManagerEmail = selectedEMS.EmailId;
             }
 
-            await client.InsertListItem(updateListItemRequest);
+            if (model.SharepointSync)
+                await client.InsertListItem(updateListItemRequest);
         }
         catch (Exception ex)
         {
 
         }
 
+    }
+
+    private async Task<IEnumerable<DesignationDTO>> DesignationSearch(string value)
+    {
+        await Task.Delay(5);
+        if (string.IsNullOrEmpty(value))
+            return designation;
+        return designation
+        .Where(x => x.Designation.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    private async Task<IEnumerable<Employee>> ManagerSearch(string value)
+    {
+        await Task.Delay(5);
+        if (string.IsNullOrEmpty(value))
+            return employee;
+        return employee
+        .Where(x => x.EmployeeName.Contains(value, StringComparison.InvariantCultureIgnoreCase));
     }
 }
 

@@ -40,7 +40,7 @@
         {
             <EditForm Model="@model" OnValidSubmit="OnValidSubmit">
                 <DataAnnotationsValidator />
-                @* <ValidationSummary/> *@
+                <ValidationSummary/>
                 <MudExpansionPanels MultiExpansion="true">
                     <MudExpansionPanel Text=" Personal Details" IsExpanded="true">
                         @if (param != null)
@@ -110,6 +110,7 @@
                                 <ValidationMessage For="() => model.UANNo" />
                             </div>
                         </div>
+
                         <div class="form-group row mb-2">
                             <label class="col-form-label col-md-2 bold-font required-field">Qualification</label>
                             <div class="col-md-4">
@@ -149,6 +150,17 @@
                             </div>
 
                         </div>
+                        <div class="form-group row mb-2">
+                            <label class="col-form-label col-md-2 bold-font required-field">ReportingTo</label>
+                            <div class="col-md-4">
+                                <span class="form-control">@model.ReportingTo</span>
+                            </div>
+                            <label class="col-form-label col-md-2 bold-font">Designation</label>
+                            <div class="col-md-4">
+                                <span class="form-control">@model.Designation</span>
+                            </div>
+                        </div>
+
                         <div class="form-group row mb-2">
                             <label class="col-form-label col-md-2 bold-font">Other Skill's</label>
                             <div class="col-md-10">

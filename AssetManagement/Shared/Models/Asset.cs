@@ -33,6 +33,10 @@ public class Asset
     public AllocationStatus Status { get; set; }
     public bool IsEngazed { get; set; }
     public AssetStatus _AssetStatus { get; set; } = AssetStatus.Active;
+
+    public string EmployeeId {  get; set; } = string.Empty;
+    public string EmployeeEmail {  get; set; } = string.Empty;
+    public string EmployeeName {  get; set; } = string.Empty;
    
     [ForeignKey("CompanyId")]
     public virtual Company? Company { get; set; }

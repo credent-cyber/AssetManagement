@@ -583,10 +583,25 @@ namespace AssetManagement.Server.Controllers.Api
         [HttpPost]
         [Route("UpsertEmployeeSkills")]
         [AllowAnonymous]
-        public async Task<List<EmployeeSkills>> UpsertZoneArea(List<EmployeeSkills> details)
+        public async Task<List<EmployeeSkills>> UpsertEmployeeSkills(List<EmployeeSkills> details)
         {
 
             return await _appRepository.UpsertEmployeeSkills(details);
+        }
+
+        [HttpPost]
+        [Route("UpsertDesignation")]
+        public async Task<List<DesignationDTO>> UpsertDesignation(List<DesignationDTO> details)
+        {
+
+            return await _appRepository.UpsertDesignation(details);
+        }
+        [HttpGet]
+        [Route("all-designations")]
+ 
+        public async Task<IEnumerable<DesignationDTO>> GetAllDesignations()
+        {
+            return await _appRepository.GetAllDesignations();
         }
 
         [HttpPost]
@@ -747,6 +762,13 @@ namespace AssetManagement.Server.Controllers.Api
         public async Task<Allocation> GetAllocationById(int id)
         {
             return await _appRepository.GetAllocationById(id);
+        }
+
+        [HttpGet]
+        [Route("GetAllocationByAssetId/{id}")]
+        public async Task<Allocation> GetAllocationByAssetId(int id)
+        {
+            return await _appRepository.GetAllocationByAssetId(id);
         }
 
         [HttpDelete]

@@ -31,8 +31,19 @@ namespace AssetManagement.DataContext
         public DbSet<Allocation> Allocation { get; set; }
         public DbSet<AllocationLog> AllocationLog { get; set; }
         public DbSet<EmployeeSkills> EmployeeSkills { get; set; }
+        public DbSet<DesignationDTO> Designation { get; set; }
         public DbSet<EmployeeSkillMapping> EmployeeSkillMapping { get; set; }
         public DbSet<EmployeeOnboardingDto> EmployeeOnboarding { get; set; }
+
+
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Asset>().Ignore(o => o.EmployeeId);
+            modelBuilder.Entity<Asset>().Ignore(o => o.EmployeeName);
+            modelBuilder.Entity<Asset>().Ignore(o => o.EmployeeEmail);
+            base.OnModelCreating(modelBuilder);
+        }
 
     }
 }

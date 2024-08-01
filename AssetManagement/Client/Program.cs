@@ -12,6 +12,7 @@ using MudBlazor.Services;
 using Havit.Blazor.Components.Web;
 
 
+
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
@@ -24,12 +25,12 @@ builder.Services.AddLogging((builder) =>
     .CreateLogger();
     builder.AddSerilog();
 });
-
 builder.Services.AddOptions();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<IdentityAuthenticationStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(s => s.GetRequiredService<IdentityAuthenticationStateProvider>());
 builder.Services.AddScoped<IAuthorizeApi, AuthorizeApi>();
+
 
 
 

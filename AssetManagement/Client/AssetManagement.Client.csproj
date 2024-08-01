@@ -32,4 +32,10 @@
     <Folder Include="wwwroot\EmployeesZone\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="Pages\AppPages\Employees\Component\AddDesignationComponent.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+  </ItemGroup>
+
 </Project>

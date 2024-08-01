@@ -18,32 +18,85 @@
     <div class="card p-2">
         <div class="form-group row">
             <label class="col-form-label col-md-2 bold-font required-field">Company Code</label>
-            <div class="col-md-2 mb-1">
-                <InputSelect id="CompanyCode" @bind-Value="model.CompanyCode" class="form-control">
-                    <option selected>- Select -</option>
-                    @foreach (var c in company.ToList())
-                    {
-                        <option value="@c.CompanyCode">@c.CompanyCode</option>
-                    }
-                </InputSelect>
+            <div class="col-md-4 mb-1">
+                <MudGrid>
+                    <MudItem xs="12" sm="12" md="12">
+                        <MudAutocomplete Label="Select" T="Company" @bind-Value="selectedCompany" SearchFunc="@CompanySearch" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                         ToStringFunc="@(e => e == null ? null : $"{e.CompanyCode} ({e.CompanyCode})")"
+                                         Required="false"
+                                         ResetValueOnEmptyText="true"
+                                         CoerceText="true"
+                                         CoerceValue="true"
+                                         MaxItems="null">
+                        </MudAutocomplete>
+                    </MudItem>
+                </MudGrid>
+                @if (selectedCompany != null) { model.CompanyCode = selectedCompany.CompanyCode; }
                 <ValidationMessage For="() => model.CompanyCode" />
             </div>
 
-            <label class="col-form-label col-md-1 bold-font required-field">Name</label>
-            <div class="col-md-2 mb-1">
+            <label class="col-form-label col-md-2 bold-font required-field">Name</label>
+            <div class="col-md-4 mb-1">
                 <InputText id="Name" @bind-Value="model.Name" class="form-control" />
                 <ValidationMessage For="() => model.Name" />
             </div>
+        </div>
 
+        <div class="form-group row">
+            <label class="col-form-label col-md-2 bold-font required-field">Reporting To</label>
+            <div class="col-md-4 mb-1">
+                <MudGrid>
+                    <MudItem xs="12" sm="12" md="12">
+                        <MudAutocomplete Label="Select" T="Employee" @bind-Value="selectedManager" SearchFunc="@ManagerSearch" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                         ToStringFunc="@(e => e == null ? null : $"{e.EmployeeName} ({e.EmailId})")"
+                                         Required="false"
+                                         ResetValueOnEmptyText="true"
+                                         CoerceText="true"
+                                         CoerceValue="true"
+                                         MaxItems="null">
+                        </MudAutocomplete>
+                    </MudItem>
+                </MudGrid>
+                @if (selectedManager != null) { model.ReportingTo = selectedManager.ReportingTo; }
+                <ValidationMessage For="() => model.ReportingTo" />
+
+            </div>
+
+            <label class="col-form-label col-md-2 bold-font required-field">Designation</label>
+            <div class="col-md-4 mb-1">
+                <MudGrid>
+                    <MudItem xs="12" sm="12" md="12">
+                        <MudAutocomplete Label="Select" T="DesignationDTO" @bind-Value="selectedDesigantion" SearchFunc="@DesignationSearch" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                         ToStringFunc="@(e => e == null ? null : $"{e.Designation} ({e.Designation})")"
+                                         Required="false"
+                                         ResetValueOnEmptyText="true"
+                                         CoerceText="true"
+                                         CoerceValue="true"
+                                         MaxItems="null">
+
+                        </MudAutocomplete>
+                    </MudItem>
+                </MudGrid>
+                @if (selectedDesigantion != null) { model.Designation = selectedDesigantion.Designation; }
+                <ValidationMessage For="() => model.Designation" />
+            </div>
+        </div>
+        <div class="form-group row">
             <label class="col-form-label col-md-2 bold-font required-field">External Email</label>
-            <div class="col-md-2 mb-1">
+            <div class="col-md-4 mb-1">
                 <InputText id="ExternalEmailId" @bind-Value="model.ExternalEmailId" class="form-control" />
                 <ValidationMessage For="() => model.ExternalEmailId" />
             </div>
 
-            <div class="col-md-1" style="text-align:left">
-                <button type="submit" class="btn btn-primary">Send</button>
+            <label class="col-form-label col-md-2 bold-font required-field">Temp. DateOfJoin</label>
+            <div class="col-md-4 mb-1">
+                <InputDate @bind-Value="model.TempDateOfJoin" class="form-control" />
+                <ValidationMessage For="() => model.TempDateOfJoin" />
             </div>
+        </div>
+
+        <div class="col-md-2" style="text-align:left">
+            <button type="submit" class="btn btn-primary">Send</button>
         </div>
     </div>
 </EditForm>
@@ -73,7 +126,7 @@ else
         }
         else
         {
-            <div class="loader-container mt-4">
+            <div class="loader-container mt-2 mb-2">
                 <div class="loader"></div>
             </div>
         }
@@ -82,7 +135,14 @@ else
 
 @code
 {
+    private DesignationDTO? selectedDesigantion { get; set; }
+    private Company? selectedCompany { get; set; }
+    private Employee? selectedManager { get; set; }
+    List<DesignationDTO> designation = new();
+
+
     List<Company> company = new();
+    List<Employee> employees = new();
     private CGrid<EmployeeOnboardingDto> _grid;
     private Task _task;
     private static GridComponent<EmployeeOnboardingDto> Component;
@@ -104,6 +164,7 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
+
         string url = $"odata/EmployeeOnboarding";
         var query = new QueryDictionary<StringValues>();
         query.Add("grid-sorting", "Id__1__1");
@@ -125,6 +186,8 @@ else
         _task = client.UpdateGrid();
         await _task;
         company = new List<Company>(await clients.GetAllCompany());
+        employees = new List<Employee>(await clients.GetAllEmployee());
+        designation = new List<DesignationDTO>(await clients.GetAllDesignations());
     }
 
     public static async void RefreshGrid(object item)
@@ -186,5 +249,30 @@ else
         await Component.UpdateGrid();
     }
 
+    private async Task<IEnumerable<DesignationDTO>> DesignationSearch(string value)
+    {
+        await Task.Delay(5);
+        if (string.IsNullOrEmpty(value))
+            return designation;
+        return designation
+        .Where(x => x.Designation.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
 
+    private async Task<IEnumerable<Employee>> ManagerSearch(string value)
+    {
+        await Task.Delay(5);
+        if (string.IsNullOrEmpty(value))
+            return employees;
+        return employees
+        .Where(x => x.EmployeeName.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    private async Task<IEnumerable<Company>> CompanySearch(string value)
+    {
+        await Task.Delay(5);
+        if (string.IsNullOrEmpty(value))
+            return company;
+        return company
+        .Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
 }

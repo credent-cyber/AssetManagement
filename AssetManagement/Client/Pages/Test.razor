@@ -1,0 +1,67 @@
+﻿@* @page "/test"
+
+@using AssetManagement.Dto.Models
+@using AssetManagement.Client.Client;
+@using AssetManagement.Client.Pages.AppPages.Employees.Component
+@using AssetManagement.Client.Shared.Popup
+@using AssetManagement.Dto;
+@using System.Text.Json;
+@using System.Text.RegularExpressions;
+@using Microsoft.AspNetCore.Components.Forms
+@inject AppClient client
+@inject HttpClient _httpClient
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@using Radzen
+@using Radzen.Blazor
+@attribute [Authorize]
+
+<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" Gap="0.5rem" Class="rz-p-sm-12">
+    <RadzenLabel Text="Select Value" Component="DropDownFiltering" />
+    <RadzenDropDown @ref=radzenDropDown
+                    @bind-SearchText=SearchText
+                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                    FilterOperator="StringFilterOperator.StartsWith"
+                    AllowFiltering="true"
+                    Data=@employee
+                    TextProperty="@nameof(Employee.EmployeeName)"
+                    ValueProperty="@nameof(Employee.Id)"
+                    AllowClear="true"
+                    @bind-Value=value
+                    Style="width: 100%; max-width: 400px;"
+                    Name="DropDownFiltering" />
+</RadzenStack>
+
+<div class="rz-p-sm-3 rz-text-align-start">
+    <RadzenLabel Text="@searchTextStatus" />
+</div>
+
+@code {
+    RadzenDropDown<int?> radzenDropDown; // Updated type to match the nullable int
+    IEnumerable<Employee> employee;
+    int? value; // Nullable integer type
+    string searchTextStatus;
+
+    protected override async Task OnInitializedAsync()
+    {
+        employee = await client.GetAllEmployee();
+        SearchText = "al"; // Initialize SearchText
+    }
+
+    private string searchText = "al";
+
+    public string SearchText
+    {
+        get => searchText;
+        set
+        {
+            if (searchText != value)
+            {
+                searchText = value;
+                searchTextStatus = $"Search text: {searchText}";
+                StateHasChanged(); // Notify Blazor to re-render the UI
+            }
+        }
+    }
+}
+ *@

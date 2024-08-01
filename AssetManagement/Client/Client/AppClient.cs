@@ -665,6 +665,49 @@ namespace AssetManagement.Client.Client
 
             return details;
         }
+        public async Task<List<DesignationDTO>> UpsertDesignationAsync(List<DesignationDTO> data)
+        {
+
+            List<DesignationDTO> result = null;
+
+            try
+            {
+                var res = await HttpClient.PostAsJsonAsync($"api/App/UpsertDesignation", data);
+
+                res.EnsureSuccessStatusCode();
+
+                result = await res.Content.ReadFromJsonAsync<List<DesignationDTO>>();
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogCritical(ex, ex.Message);
+                throw;
+            }
+
+            return result;
+
+        }
+        public async Task<IEnumerable<DesignationDTO>> GetAllDesignations()
+        {
+            IEnumerable<DesignationDTO> details = null;
+            try
+            {
+                var res = await HttpClient.GetAsync($"api/App/all-designations");
+
+                res.EnsureSuccessStatusCode();
+
+                details = await res.Content.ReadFromJsonAsync<IEnumerable<DesignationDTO>>();
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogCritical(ex, ex.Message);
+                throw;
+            }
+
+            return details;
+        }
         public async Task<List<EmployeeSkills>> UpsertEmployeeSkillsAsync(List<EmployeeSkills> data)
         {
 
@@ -688,6 +731,7 @@ namespace AssetManagement.Client.Client
             return result;
 
         }
+
         [AllowAnonymous]
         public async Task<bool> UpsertEmployeeSkillsIDsMap(Dictionary<int, List<int>> dict)
         {
@@ -947,6 +991,27 @@ namespace AssetManagement.Client.Client
             try
             {
                 var res = await HttpClient.GetAsync($"api/App/Allocation/{id}");
+
+                res.EnsureSuccessStatusCode();
+
+                result = await res.Content.ReadFromJsonAsync<Allocation>();
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogCritical(ex, ex.Message);
+                throw;
+            }
+
+            return result;
+        }
+
+        public async Task<Allocation> GetAllocationByAssetId(int id)
+        {
+            Allocation result = null;
+            try
+            {
+                var res = await HttpClient.GetAsync($"api/App/GetAllocationByAssetId/{id}");
 
                 res.EnsureSuccessStatusCode();
 

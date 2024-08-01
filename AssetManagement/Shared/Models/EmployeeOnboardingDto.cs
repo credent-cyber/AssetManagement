@@ -108,6 +108,15 @@ namespace AssetManagement.Dto.Models
         [NotMapped]
         public string CompanyName { get; set; } = string.Empty;
         public string? OtherSkills { get; set; }
+
+        [Required]
+        public string Designation { get; set; } = string.Empty;
+        
+        [Required]
+        public string ReportingTo { get; set; } = string.Empty;
+
+        [Required]
+        public DateTime TempDateOfJoin { get; set; } = DateTime.Now.AddDays(4);
     }
 
     public class RequiredIfNotEmptyAttribute : RequiredAttribute

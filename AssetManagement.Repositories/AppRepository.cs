@@ -871,7 +871,7 @@ namespace AssetManagement.Repositories
                     CurrentAddress = ed.CurrentAddress,
                     PermanentAddress = ed.PermanentAddress,
                     PCountry = ed.PCountry,
-                    PState = ed.PState,         
+                    PState = ed.PState,
                     EmpAccountName = ed.EmpAccountName,
                     EmpBankAccNumber = ed.EmpBankAccNumber,
                     EmpBankIfsc = ed.EmpBankIfsc,
@@ -900,19 +900,19 @@ namespace AssetManagement.Repositories
                 var ed = AppDbCxt.Employee.FirstOrDefault(o => o.EmailId == employeePortalSPFX.Email);
                 if (ed != null)
                 {
-                  ed.EmpAccountName = employeePortalSPFX.EmpAccountName;
-                  ed.EmpBankAccNumber = employeePortalSPFX.EmpBankAccNumber;
-                  ed.EmpBankName = employeePortalSPFX.EmpBankName;
-                  ed.EmpBankIfsc = employeePortalSPFX.EmpBankIfsc; 
+                    ed.EmpAccountName = employeePortalSPFX.EmpAccountName;
+                    ed.EmpBankAccNumber = employeePortalSPFX.EmpBankAccNumber;
+                    ed.EmpBankName = employeePortalSPFX.EmpBankName;
+                    ed.EmpBankIfsc = employeePortalSPFX.EmpBankIfsc;
 
-                  ed.CurrentAddress = employeePortalSPFX.CurrentAddress;
-                  ed.PermanentAddress = employeePortalSPFX.PermanentAddress;
-                  ed.MobileNumber = employeePortalSPFX.MobileNumber;
+                    ed.CurrentAddress = employeePortalSPFX.CurrentAddress;
+                    ed.PermanentAddress = employeePortalSPFX.PermanentAddress;
+                    ed.MobileNumber = employeePortalSPFX.MobileNumber;
 
-                   AppDbCxt.Employee.Update(ed);
-                   AppDbCxt.SaveChanges();
-                   result.IsSuccess = true;
-                   result.Message = "Successfully Updated!";
+                    AppDbCxt.Employee.Update(ed);
+                    AppDbCxt.SaveChanges();
+                    result.IsSuccess = true;
+                    result.Message = "Successfully Updated!";
 
                 }
                 else
@@ -920,9 +920,9 @@ namespace AssetManagement.Repositories
                     result.IsSuccess = false;
                     result.Message = "User email not found.";
                 }
-            
+
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 result.IsSuccess = false;
                 result.Message = ex.Message;
@@ -969,6 +969,43 @@ namespace AssetManagement.Repositories
             AppDbCxt.SaveChanges();
 
             return data;
+        }
+
+        public async Task<List<DesignationDTO>> UpsertDesignation(List<DesignationDTO> data)
+        {
+            List<DesignationDTO> result = null;
+
+            if (data.Count() == 0)
+                return result;
+            try
+            {
+
+                foreach (DesignationDTO area in data)
+                {
+                    var existing = await AppDbCxt.Designation.FirstOrDefaultAsync(c => c.Designation.ToUpper() == area.Designation.ToUpper());
+                    if (existing != null)
+                    {
+                        continue;
+                    }
+                    AppDbCxt.Designation.Add(area);
+                }
+
+                AppDbCxt.SaveChanges();
+
+                return data;
+            }
+            catch (Exception ex)
+            {
+                return result;
+            }
+        }
+
+        public async Task<IEnumerable<DesignationDTO>> GetAllDesignations()
+        {
+            IEnumerable<DesignationDTO> result = null;
+
+            result = AppDbCxt.Designation.ToList();
+            return result;
         }
 
         public async Task<bool> UpsertEmployeeSkillsIDsMap(Dictionary<int, List<int>> dict)
@@ -1322,6 +1359,17 @@ namespace AssetManagement.Repositories
 
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
             result = AppDbCxt.Allocation.FirstOrDefault(o => o.Id == id);
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+
+            return result;
+        }
+
+        public async Task<Allocation> GetAllocationByAssetId(int id)
+        {
+            Allocation result = null;
+
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+            result = AppDbCxt.Allocation.FirstOrDefault(o => o.AssetId == id);
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
 
             return result;
@@ -1953,11 +2001,11 @@ namespace AssetManagement.Repositories
             try
             {
                 string path;
-//#if DEBUG
+                //#if DEBUG
                 path = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName + "\\AssetManagement\\Client\\wwwroot\\EmployeesZone";
-//#else
-//        path = Path.Combine(env.ContentRootPath, "wwwroot", "EmployeesZone");
-//#endif
+                //#else
+                //        path = Path.Combine(env.ContentRootPath, "wwwroot", "EmployeesZone");
+                //#endif
 
                 string oldFilePath = Path.Combine(path, oldFileName);
                 string newFilePath = Path.Combine(path, newFileName);
@@ -2318,11 +2366,11 @@ namespace AssetManagement.Repositories
                     assetData = assetData.Where(o => o.DiscardDate >= model.DiscardDateStart && o.DiscardDate <= model.DiscardDateEnd).ToList();
                 }
                 result = assetData;
-                
+
             }
             catch (Exception ex)
             {
-                
+
             }
             return result;
 

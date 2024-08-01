@@ -39,3 +39,17 @@ CREATE TABLE EmployeeOnboarding (
   ProfilePhotoFile VARCHAR(255) NOT NULL,
   SkillIDs LONGTEXT NOT NULL
 );
+
+
+--Date 19 July 2024
+alter table Employee add COLUMN SharepointSync bool DEFAULT true;
+
+ALTER TABLE EmployeeOnboarding ADD COLUMN TempDateOfJoin DATE;
+-- Update existing rows with a default date or desired value
+UPDATE EmployeeOnboarding SET TempDateOfJoin = '1900-01-01' WHERE TempDateOfJoin IS NULL;
+-- Alter the column to be NOT NULL
+ALTER TABLE EmployeeOnboarding RENAME COLUMN TempDateOfJoin TO TempDateOfJoin_temp;
+ALTER TABLE EmployeeOnboarding ADD COLUMN TempDateOfJoin DATE NOT NULL DEFAULT '1900-01-01';
+UPDATE EmployeeOnboarding SET TempDateOfJoin = TempDateOfJoin_temp;
+ALTER TABLE EmployeeOnboarding DROP COLUMN TempDateOfJoin_temp;
+
