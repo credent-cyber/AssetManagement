@@ -1,4 +1,5 @@
-using AssetManagement.Dto.Models;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.RegularExpressions;
@@ -31,7 +32,7 @@ namespace AssetManagement.Dto.Models
         public string ExternalEmailId { get; set; } = string.Empty;
 
         [Required]
-        [RegularExpression(@"[0-9]{10}", ErrorMessage = "Invalid Mobile Number!")]
+        [RegularExpression(@"^[0-9]{10}$", ErrorMessage = "Invalid Mobile Number!")]
         public string MobileNumber { get; set; } = string.Empty;
 
         [Required]
@@ -44,7 +45,7 @@ namespace AssetManagement.Dto.Models
         public string PState { get; set; } = string.Empty;
 
         [Required]
-        [RegularExpression(@"[0-9]{6}$", ErrorMessage = "Pin is Invalid")]
+        [RegularExpression(@"^[0-9]{6}$", ErrorMessage = "Pin is Invalid")]
         public string PPin { get; set; } = string.Empty;
 
         public bool checkbox { get; set; }
@@ -59,14 +60,14 @@ namespace AssetManagement.Dto.Models
         public string CState { get; set; } = string.Empty;
 
         [Required]
-        [RegularExpression(@"[0-9]{6}$", ErrorMessage = "Pin is Invalid")]
+        [RegularExpression(@"^[0-9]{6}$", ErrorMessage = "Pin is Invalid")]
         public string CPin { get; set; } = string.Empty;
 
         [Required]
-        [RegularExpression(@"[0-9]{12}", ErrorMessage = "Invalid Adhar Number!")]
+        [RegularExpression(@"^[0-9]{12}$", ErrorMessage = "Invalid Aadhaar Number!")]
         public string AadhaarNumber { get; set; } = string.Empty;
 
-        [RegularExpression(@"[A-Z]{5}[0-9]{4}[A-Z]", ErrorMessage = "Pan Number is Invalid")]
+        [RegularExpression(@"^[A-Z]{5}[0-9]{4}[A-Z]$", ErrorMessage = "Pan Number is Invalid")]
         public string PANNumber { get; set; } = string.Empty;
 
         public string UANNo { get; set; } = string.Empty;
@@ -265,24 +266,34 @@ namespace AssetManagement.Dto.Models
             EmpBankAccNumber = o.EmpBankAccNumber;
             EmpBankIfsc = o.EmpBankIfsc;
             EmployeeCategory = o.EmployeeCategory;
-            Department = (Departments)Enum.Parse(typeof(Departments), o.Department);
+            Department = (Departments)Enum.Parse(typeof(Departments), o.Department ?? string.Empty, true);
         }
 
         public void Validate()
         {
-            ValidationErrMsg = null;
+            ValidationErrMsg = string.Empty;
 
             if (string.IsNullOrEmpty(CompanyCode) || string.IsNullOrEmpty(EmployeeName)
                 || string.IsNullOrEmpty(EmailId) || string.IsNullOrEmpty(MobileNumber))
-                ValidationErrMsg = "CompanyCode|Name|Email|Mobile are required fields";
+            {
+                ValidationErrMsg = "CompanyCode|Name|Email|Mobile are required fields. ";
+            }
 
             bool isEmail = Regex.IsMatch(EmailId, ImportEmployeeConfig.EmailRegex);
+            if (!isEmail)
+            {
+                ValidationErrMsg = "Invalid EmailId. ";
+            }
 
             if (MobileNumber.Length < 10)
-                ValidationErrMsg = "Invalid Mobile number specified";
+            {
+                ValidationErrMsg = "Invalid Mobile number specified. ";
+            }
 
             if (string.IsNullOrEmpty(MobileNumber))
-                ValidationErrMsg = "Employee Mobile number can't be empty";
+            {
+                ValidationErrMsg = "Employee Mobile number can't be empty. ";
+            }
         }
     }
 
@@ -297,6 +308,23 @@ namespace AssetManagement.Dto.Models
         [ForeignKey("EmployeeId")]
         public virtual Employee? Employee { get; set; }
 
-     
+        public string Name { get; set; } = string.Empty;
+        public Relation Relation { get; set; }
+
+        public DateTime DOB { get; set; }
+        public string Aadhaar { get; set; } = string.Empty;
+
+        public int Age { get; set; }
+    }
+
+    public enum Relation
+    {
+        Father,
+        Mother,
+        Brother,
+        Sister,
+        Spouse,
+        Son,
+        Daughter, 
     }
 }

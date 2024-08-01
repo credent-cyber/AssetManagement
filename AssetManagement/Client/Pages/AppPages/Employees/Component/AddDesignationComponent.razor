@@ -38,6 +38,7 @@
 
 @code {
 
+    [Parameter] public EventCallback<List<DesignationDTO>> OnSaveDesignation { get; set; }
     public string Title = "Add Designation";
     public bool Check { get; set; } = false;
     string Message = string.Empty;
@@ -61,7 +62,7 @@
         }
         designationDTO = await client.UpsertDesignationAsync(designationDTO);
         Message = "Successfully Saved!";
-
+        await OnSaveDesignation.InvokeAsync(designationDTO);
         StateHasChanged();
         designationDTO = new();
         designationDTO.Add(new DesignationDTO());

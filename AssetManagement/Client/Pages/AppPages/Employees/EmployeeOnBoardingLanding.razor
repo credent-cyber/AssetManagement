@@ -40,7 +40,7 @@
         {
             <EditForm Model="@model" OnValidSubmit="OnValidSubmit">
                 <DataAnnotationsValidator />
-                <ValidationSummary/>
+                <ValidationSummary />
                 <MudExpansionPanels MultiExpansion="true">
                     <MudExpansionPanel Text=" Personal Details" IsExpanded="true">
                         @if (param != null)
@@ -150,16 +150,61 @@
                             </div>
 
                         </div>
-                        <div class="form-group row mb-2">
-                            <label class="col-form-label col-md-2 bold-font required-field">ReportingTo</label>
-                            <div class="col-md-4">
-                                <span class="form-control">@model.ReportingTo</span>
+                        @if (param != null)
+                        {
+                            <div class="form-group row mb-2">
+                                <label class="col-form-label col-md-2 bold-font required-field">Reporting To</label>
+                                <div class="col-md-4">
+                                    <MudGrid>
+                                        <MudItem xs="12" sm="12" md="12">
+                                            <MudAutocomplete Label="Select" T="Employee" @bind-Value="selectedManager" SearchFunc="@ManagerSearch" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                             ToStringFunc="@(e => e == null ? null : $"{e.EmployeeName} ({e.EmailId})")"
+                                                             Required="false"
+                                                             ResetValueOnEmptyText="true"
+                                                             CoerceText="true"
+                                                             CoerceValue="true"
+                                                             MaxItems="null">
+
+                                            </MudAutocomplete>
+                                        </MudItem>
+                                    </MudGrid>
+                                    @if (selectedManager != null) { model.ReportingTo = selectedManager.ReportingTo; }
+                                    <ValidationMessage For="() => model.ReportingTo" />
+                                </div>
+
+                                <label class="col-form-label col-md-2 bold-font required-field">Designation</label>
+                                <div class="col-md-3">
+                                    <MudGrid>
+                                        <MudItem xs="12" sm="12" md="12">
+                                            <MudAutocomplete Label="Select" T="DesignationDTO" @bind-Value="selectedDesigantion" SearchFunc="@DesignationSearch" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                             ToStringFunc="@(e => e == null ? null : $"{e.Designation}")"
+                                                             Required="false"
+                                                             ResetValueOnEmptyText="true"
+                                                             CoerceText="true"
+                                                             CoerceValue="true"
+                                                             MaxItems="null">
+
+                                            </MudAutocomplete>
+                                        </MudItem>
+                                    </MudGrid>
+                                    @if (selectedDesigantion != null) { model.Designation = selectedDesigantion.Designation; }
+                                    <ValidationMessage For="() => model.Designation" />
+                                </div>
                             </div>
-                            <label class="col-form-label col-md-2 bold-font">Designation</label>
-                            <div class="col-md-4">
-                                <span class="form-control">@model.Designation</span>
+                        }
+                        else
+                        {
+                            <div class="form-group row mb-2">
+                                <label class="col-form-label col-md-2 bold-font required-field">ReportingTo</label>
+                                <div class="col-md-4">
+                                    <span style="min-height: 34px;" class="form-control">@model.ReportingTo</span>
+                                </div>
+                                <label class="col-form-label col-md-2 bold-font">Designation</label>
+                                <div class="col-md-4">
+                                    <span style="min-height: 34px;" class="form-control">@model.Designation</span>
+                                </div>
                             </div>
-                        </div>
+                        }
 
                         <div class="form-group row mb-2">
                             <label class="col-form-label col-md-2 bold-font">Other Skill's</label>
@@ -524,6 +569,29 @@
     string SizeLimitInfoCertificate = string.Empty;
     string SizeLimitInfoProfilePic = string.Empty;
 
+    private DesignationDTO? selectedDesigantion { get; set; }
+    private Employee? selectedManager { get; set; }
+    List<DesignationDTO> designation = new();
+    List<Employee> employee = new();
+
+    private async Task<IEnumerable<DesignationDTO>> DesignationSearch(string value)
+    {
+        await Task.Delay(5);
+        if (string.IsNullOrEmpty(value))
+            return designation;
+        return designation
+        .Where(x => x.Designation.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    private async Task<IEnumerable<Employee>> ManagerSearch(string value)
+    {
+        await Task.Delay(5);
+        if (string.IsNullOrEmpty(value))
+            return employee;
+        return employee
+        .Where(x => x.EmployeeName.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
     private async Task LoadAadhaarFiles(InputFileChangeEventArgs e)
     {
         SizeLimitInfoAadhar = string.Empty;
@@ -612,6 +680,8 @@
         {
             validate = false;
             company = new List<Company>(await client.GetAllCompany());
+            employee = new List<Employee>(await client.GetAllEmployee());
+            designation = new List<DesignationDTO>(await client.GetAllDesignations());
         }
 
 
@@ -971,7 +1041,7 @@
             TaskCompleted = true;
 
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             IsError = true;
             Message = "Error!";

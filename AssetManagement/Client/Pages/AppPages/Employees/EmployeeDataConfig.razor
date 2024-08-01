@@ -164,7 +164,7 @@
                             <MudGrid>
                                 <MudItem xs="12" sm="12" md="12">
                                     <MudAutocomplete Label="Select" T="DesignationDTO" @bind-Value="selectedDesigantion" SearchFunc="@DesignationSearch" Variant="Variant.Outlined" Margin="Margin.Dense"
-                                                     ToStringFunc="@(e => e == null ? null : $"{e.Designation} ({e.Designation})")"
+                                                     ToStringFunc="@(e => e == null ? null : $"{e.Designation}")"
                                                      Required="false"
                                                      ResetValueOnEmptyText="true"
                                                      CoerceText="true"
@@ -668,7 +668,7 @@
                 </PageDialog>
 
                 <PageDialog Title="Add Designtions" Show="AddDesigntions" ClosePageDialog="ClosePopUp">
-                    <AddDesignationComponent />
+                    <AddDesignationComponent OnSaveDesignation="HandleSaveDesignation" />
                 </PageDialog>
 
                 <FilePreviewDailog Title="Preview" Show="ShowPreview" ClosePreview="ClosePreview">
@@ -719,7 +719,10 @@
         return imageExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase);
     }
 
-
+    private async void HandleSaveDesignation(List<DesignationDTO> designations)
+    {
+        designation = new List<DesignationDTO>(await client.GetAllDesignations());
+    }
 
     public string Title
     {
