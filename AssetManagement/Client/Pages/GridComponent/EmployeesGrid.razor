@@ -44,9 +44,9 @@ else
        {
            var imageUrl = "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/default-avatar.png";
            var employeeFile = employeeFiles.FirstOrDefault(o => o.EmployeeId == employee.Id);
-           if (employeeFile != null)
+           if (!string.IsNullOrEmpty(employeeFile?.ProfilePhotoFile))
            {
-               imageUrl = $"{BaseUri}EmployeesZone/{employeeFile.ProfilePhotoFile}";
+               imageUrl = $"{BaseUri}EmployeesZone/{employeeFile?.ProfilePhotoFile}";
            }
            return $"<img src='{imageUrl}' alt='{employee.EmployeeName}' width='50' height='50' />";
        }).SetWidth("50px").Css("table-bordered").Titled("Image");

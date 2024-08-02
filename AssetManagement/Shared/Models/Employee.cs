@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace AssetManagement.Dto.Models
@@ -90,7 +91,7 @@ namespace AssetManagement.Dto.Models
         [Required]
         public string Designation { get; set; } = string.Empty;
 
-        [Required]
+        //[Required]
         public string ReportingTo { get; set; } = string.Empty;
 
         [Required]
@@ -305,17 +306,25 @@ namespace AssetManagement.Dto.Models
         [Required]
         public int EmployeeId { get; set; }
 
-        [ForeignKey("EmployeeId")]
-        public virtual Employee? Employee { get; set; }
+        //[ForeignKey("EmployeeId")]
+        //[JsonIgnore]
+        //public virtual Employee? Employee { get; set; }
 
         public string Name { get; set; } = string.Empty;
+
         public Relation Relation { get; set; }
 
         public DateTime DOB { get; set; }
+
         public string Aadhaar { get; set; } = string.Empty;
 
         public int Age { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        public DateTime ? UpdatedAt { get; set; } 
     }
+
 
     public enum Relation
     {

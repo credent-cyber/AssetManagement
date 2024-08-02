@@ -35,7 +35,7 @@ namespace AssetManagement.DataContext
         public DbSet<EmployeeSkillMapping> EmployeeSkillMapping { get; set; }
         public DbSet<EmployeeOnboardingDto> EmployeeOnboarding { get; set; }
 
-
+        public DbSet<EmployeeInsurance> EmployeeInsurance { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

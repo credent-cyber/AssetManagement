@@ -358,15 +358,40 @@ namespace AssetManagement.Repositories
         #region Employee
         public async Task<Employee> GetEmployeeById(int id)
         {
-            Employee result = null;
+            try
+            {
+                Employee result = null;
 
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
-            result = AppDbCxt.Employee.FirstOrDefault(o => o.Id == id);
+    #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                result = await AppDbCxt.Employee                     
+                        .FirstOrDefaultAsync(o => o.Id == id);
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
 
-            return result;
+                return result;
+            }
+            catch(Exception ex)
+            {
+                return null;
+            }
         }
+        public async Task<IEnumerable<EmployeeInsurance>> GetEmployeeInsuranceById(int id)
+        {
+            try
+            {
+                IEnumerable<EmployeeInsurance> result = null;
 
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                result = await AppDbCxt.EmployeeInsurance
+                        .Where(o => o.EmployeeId == id).ToListAsync();
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
         public async Task<IEnumerable<Employee>> GetAllEmployee()
         {
             try
@@ -386,10 +411,35 @@ namespace AssetManagement.Repositories
             var result = new ApiResponse<Employee>();
             try
             {
-
                 if (data.Id > 0)
                 {
+                    // Remove existing EmployeeInsurance records for the employee
+                    var existingInsurances = AppDbCxt.EmployeeInsurance
+                        .Where(ei => ei.EmployeeId == data.Id)
+                        .ToList();
+
+                    if (existingInsurances.Any())
+                    {
+                        AppDbCxt.EmployeeInsurance.RemoveRange(existingInsurances);
+                        await AppDbCxt.SaveChangesAsync(); // Save changes to remove existing records
+                    }
+
+                    // Clear primary key values for new EmployeeInsurance entries
+                    if (data.EmployeeInsurance != null)
+                    {
+                        foreach (var insurance in data.EmployeeInsurance)
+                        {
+                            insurance.Id = 0; // Resetting the Id to ensure it gets a new value
+                            insurance.EmployeeId = data.Id;
+                        }
+
+                        // Add the updated EmployeeInsurance records
+                        AppDbCxt.EmployeeInsurance.AddRange(data.EmployeeInsurance);
+                    }
+
+                    // Update the Employee record
                     AppDbCxt.Employee.Update(data);
+                    result.Message = "Data Successfully Updated";
                 }
                 else
                 {
@@ -404,7 +454,6 @@ namespace AssetManagement.Repositories
                     var key = $"{data.EmployeeId}-{data.EmailId}-{timestamp}".ComputeMd5Hash().ToLower();
                     var returnUrl = $"{data.BaseUrl}/emp/{key}";
 
-                    //AppDbCxt.Entry(existingAsset).State = EntityState.Detached; //can be used to detach tracking
                     data.ReturnUrl = returnUrl;
                     data.SecurityStamp = key;
                     AppDbCxt.Employee.Add(data);
@@ -418,12 +467,30 @@ namespace AssetManagement.Repositories
                     {
                         AppDbCxt.EmployeeOnboarding.Remove(OnboardEmployee);
                     }
+
+                    // Save the employee to generate the Id
+                    await AppDbCxt.SaveChangesAsync();
+
+                    // Now that the Id is available, set it for EmployeeInsurance
+                    if (data.EmployeeInsurance != null)
+                    {
+                        foreach (var insurance in data.EmployeeInsurance)
+                        {
+                            insurance.Id = 0; // Resetting the Id to ensure it gets a new value
+                            insurance.EmployeeId = data.Id; // Set the Id for new employee
+                        }
+
+                        // Add the EmployeeInsurance records
+                        AppDbCxt.EmployeeInsurance.AddRange(data.EmployeeInsurance);
+                    }
+                    result.Message = "Data Successfully Added";
                 }
 
-                AppDbCxt.SaveChanges();
-
+                await AppDbCxt.SaveChangesAsync(); // Save all changes including new EmployeeInsurance records
+                
                 result.Result = data;
                 result.IsSuccess = true;
+
             }
             catch (Exception ex)
             {
@@ -432,6 +499,9 @@ namespace AssetManagement.Repositories
 
             return result;
         }
+
+
+
 
         public async Task<ApiResponse<EmployeeOnboardingDto>> UpsertEmployeeOnboarding(EmployeeOnboardingDto data)
         {

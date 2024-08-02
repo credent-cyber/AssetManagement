@@ -1,9 +1,15 @@
-﻿CREATE TABLE Designation (
-    Id INTEGER PRIMARY KEY AUTOINCREMENT, 
-    Designation TEXT NOT NULL
-
+﻿CREATE TABLE EmployeeInsurance (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    EmployeeId INTEGER NOT NULL,
+    InsuranceType TEXT NOT NULL,
+    InsuranceNumber TEXT,
+    ExpiryDate DATE,
+    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Foreign Key Constraint
+    FOREIGN KEY (EmployeeId) REFERENCES Employee(Id) ON DELETE CASCADE
 );
 
-
-ALTER TABLE EmployeeOnboarding ADD COLUMN Designation TEXT NOT NULL DEFAULT '';
-ALTER TABLE EmployeeOnboarding ADD COLUMN ReportingTo TEXT NOT NULL DEFAULT '';
+-- Optional: Add indexes for faster queries if needed
+CREATE INDEX idx_employeeid ON EmployeeInsurance(EmployeeId);

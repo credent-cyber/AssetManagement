@@ -18,7 +18,24 @@
 @attribute [Authorize]
 @inject IDialogService Dialog
 
+<style>
 
+.name-column {
+    width: 200px;
+}
+
+@@media (max-width: 768px) {
+    .name-column {
+        width: 150px; 
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+</style>
 <div>
     <div class="card mb-4">
         <div class="card-header bg-secondary text-center">
@@ -151,7 +168,7 @@
                                                      CoerceText="true"
                                                      CoerceValue="true"
                                                      MaxItems="null">
-                                                  
+
                                     </MudAutocomplete>
                                 </MudItem>
                             </MudGrid>
@@ -170,14 +187,14 @@
                                                      CoerceText="true"
                                                      CoerceValue="true"
                                                      MaxItems="null">
-                                              
+
                                     </MudAutocomplete>
                                 </MudItem>
                             </MudGrid>
                             @if (selectedDesigantion != null) { model.Designation = selectedDesigantion.Designation; }
                             <ValidationMessage For="() => model.Designation" />
                         </div>
-                         <div class="col-md-1">
+                        <div class="col-md-1">
                             <a type="button" class="btn btn-primary" @onclick="(() => AddDesigntions = true)" style="margin-top:5px;">Add</a>
                         </div>
                     </div>
@@ -533,6 +550,53 @@
                             </div>
                         </MudExpansionPanel>
 
+                        <MudExpansionPanel Text="Insurance" MaxHeight="500" Class="custom-header">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-bordered" style="margin-bottom: 0.2rem !important;">
+                                    <thead style="text-align:center">
+                                        <tr>
+                                            <th style="width: 50px;">SN</th>
+                                            <th class="name-column">Name</th>
+                                            <th style="width: 100px;">Relation</th>
+                                            <th style="width: 150px;">DOB</th>
+                                            <th style="width: 80px;">Age</th>
+                                            <th style="width: 60px;">
+                                                <a title="Add Row" style="cursor:pointer; color:darkblue" @onclick="AddEmployeeInsurance">
+                                                    <i class="fa fa-plus-circle fa-2x" aria-hidden="true"></i>
+                                                </a>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var e in EmployeeInsurance.Select((value, index) => new { value, index }))
+                                        {
+                                            <tr>
+                                                <td>@(e.index + 1)</td>
+                                                <td><input type="text" class="form-control" @bind="@e.value.Name" /></td>
+                                                <td>
+                                                    <select class="form-control" @bind="@e.value.Relation">
+                                                        @foreach (var relation in Enum.GetValues(typeof(Relation)).Cast<Relation>())
+                                                        {
+                                                            <option value="@relation">@relation</option>
+                                                        }
+                                                    </select>
+                                                </td>
+                                                <td><input type="date" class="form-control" @bind="@e.value.DOB" /></td>
+                                                <td>
+                                                    <input type="text" class="form-control" value="@(CalculateAge(e.value.DOB))" readonly />
+                                                </td>
+                                                <td style="text-align:center">
+                                                    <a title="Remove Row" style="cursor:pointer;" @onclick="() => RemoveEmployeeInsurance(e.value)">
+                                                        <i class="fa fa-trash fa-2x text-danger" aria-hidden="true"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </MudExpansionPanel>
+
                         <MudExpansionPanel Text="Permission" MaxHeight="500" Class="custom-header" IsExpanded="true">
                             <span class="bold-font">Sharepoint Sync is @(model.SharepointSync ? "On" : "Off")</span>
                             <MudToggleIconButton @bind-Toggled="@model.SharepointSync"
@@ -698,14 +762,14 @@
 
 @code {
 
-        [Parameter]
-        public int Id { get; set; }
-        [Parameter]
-        public string Key { get; set; }
-        [Parameter]
-        public DateTime date { get; set; }
+    [Parameter]
+    public int Id { get; set; }
+    [Parameter]
+    public string Key { get; set; }
+    [Parameter]
+    public DateTime date { get; set; }
 
-        bool EmailRequest = false;
+    bool EmailRequest = false;
     private IEnumerable<dynamic> listItems;
     bool submit = false;
     private DesignationDTO? selectedDesigantion { get; set; }
@@ -740,6 +804,7 @@
     private List<int> SelectedSkill { get; set; } = new();
     private bool show = false;
 
+
     string SizeLimitInfoAadhar = string.Empty;
     string SizeLimitInfoPan = string.Empty;
     string SizeLimitInfoPassbook = string.Empty;
@@ -765,6 +830,27 @@
     private IBrowserFile? bankPassbookFile;
     private IBrowserFile? certificateFiles;
     private IBrowserFile? employeeProfilePhoto;
+
+
+    public List<EmployeeInsurance> EmployeeInsurance { get; set; } = new List<EmployeeInsurance>();
+    int SN = 0;
+    private void AddEmployeeInsurance()
+    {
+        EmployeeInsurance.Add(new EmployeeInsurance());
+    }
+
+    private void RemoveEmployeeInsurance(EmployeeInsurance e)
+    {
+        EmployeeInsurance.Remove(e);
+    }
+
+    private int CalculateAge(DateTime dob)
+    {
+        var today = DateTime.Today;
+        var age = today.Year - dob.Year;
+        if (dob.Date > today.AddYears(-age)) age--;
+        return age;
+    }
 
     private async Task LoadAadhaarFiles(InputFileChangeEventArgs e)
     {
@@ -856,6 +942,7 @@
         company = new List<Company>(await client.GetAllCompany());
         employee = new List<Employee>(await client.GetAllEmployee());
         designation = new List<DesignationDTO>(await client.GetAllDesignations());
+        EmployeeInsurance.Add(new EmployeeInsurance());
 
         if (Key != null)
         {
@@ -917,6 +1004,8 @@
         if (Id > 0)
         {
             model = await client.GetEmployeeById(Id);
+            var EI =  new List<EmployeeInsurance>(await client.GetEmployeeInsuranceById(Id));
+            EmployeeInsurance = EI;
             employee = employee.Where(x => x.EmailId != model.EmailId).ToList();
             var skillOption = await client.GetEmployeeSkillsIDs(Id);
             SelectedSkill.AddRange(skillOption.Select(tc => tc.EmployeeSkillId));
@@ -983,6 +1072,14 @@
             int Id = model.Id;
 
             model.CompanyId = company.Where(o => o.CompanyCode == model.CompanyCode).Select(o => o.Id).First();
+
+            //  // Assign EmployeeId to each item in EmployeeInsurance list
+            // foreach (var insurance in EmployeeInsurance)
+            // {
+            //     insurance.EmployeeId = model.Id;
+            // }
+        
+            model.EmployeeInsurance = EmployeeInsurance;
 
             var response = await client.UpsertEmployeeAsync(model);
             if (response.IsSuccess)

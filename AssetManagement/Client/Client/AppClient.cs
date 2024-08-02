@@ -328,6 +328,27 @@ namespace AssetManagement.Client.Client
 
             return result;
         }
+
+        public async Task<IEnumerable<EmployeeInsurance>> GetEmployeeInsuranceById(int id)
+        {
+            IEnumerable<EmployeeInsurance> result = null;
+            try
+            {
+                var res = await HttpClient.GetAsync($"api/App/EmployeeInsurance/{id}");
+
+                res.EnsureSuccessStatusCode();
+
+                result = await res.Content.ReadFromJsonAsync<IEnumerable<EmployeeInsurance>>();
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogCritical(ex, ex.Message);
+                return null;
+            }
+
+            return result;
+        }
         public async Task<IEnumerable<Employee>> GetAllEmployee()
         {
             IEnumerable<Employee> result = null;
@@ -353,9 +374,18 @@ namespace AssetManagement.Client.Client
         {
             try
             {
-                var res = await HttpClient.PostAsJsonAsync($"api/App/UpsertEmployee", data);
+                var res = await HttpClient.PostAsJsonAsync("api/App/UpsertEmployee", data);
 
-                res.EnsureSuccessStatusCode();
+                if (!res.IsSuccessStatusCode)
+                {
+                    var errorContent = await res.Content.ReadAsStringAsync();
+                    Logger.LogError($"Failed to upsert employee. Status code: {res.StatusCode}, Response: {errorContent}");
+                    return new ApiResponse<Employee>
+                    {
+                        IsSuccess = false,
+                        Message = $"Failed to upsert employee. Status code: {res.StatusCode}, Response: {errorContent}"
+                    };
+                }
 
                 var json = await res.Content.ReadFromJsonAsync<ApiResponse<Employee>>();
                 return json;
@@ -363,9 +393,14 @@ namespace AssetManagement.Client.Client
             catch (Exception ex)
             {
                 Logger.LogCritical(ex, ex.Message);
-                throw;
+                return new ApiResponse<Employee>
+                {
+                    IsSuccess = false,
+                    Message = ex.Message
+                };
             }
         }
+
 
         [AllowAnonymous]
         public async Task<ApiResponse<EmployeeOnboardingDto>> UpsertEmployeeOnboarding(EmployeeOnboardingDto data)

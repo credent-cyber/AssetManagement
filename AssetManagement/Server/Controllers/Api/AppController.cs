@@ -174,7 +174,16 @@ namespace AssetManagement.Server.Controllers.Api
         [Route("Employee/{id}")]
         public async Task<Employee> GetEmployeeById(int id)
         {
-            return await _appRepository.GetEmployeeById(id);
+            var data =  await _appRepository.GetEmployeeById(id);
+            return data;
+        }
+
+        [HttpGet]
+        [Route("EmployeeInsurance/{id}")]
+        public async Task<IEnumerable<EmployeeInsurance>> GetEmployeeInsuranceById(int id)
+        {
+            var data =  await _appRepository.GetEmployeeInsuranceById(id);
+            return data;
         }
 
         [HttpGet]
@@ -195,6 +204,7 @@ namespace AssetManagement.Server.Controllers.Api
                 string baseUrl = $"{Request.Scheme}://{Request.Host.Value}";
                 data.BaseUrl = baseUrl;
                 result = await _appRepository.UpsertEmployeeAsync(data);
+
                 if (!result.IsSuccess)
                 {
                     result.Message = result.Message;
@@ -203,7 +213,7 @@ namespace AssetManagement.Server.Controllers.Api
                 {
                     result.Result = data;
                     result.IsSuccess = true;
-                    result.Message = string.Empty;
+                    //result.Message = string.Empty;
 
                     string path;
                     //var RawContents = System.IO.File.ReadAllText($"{System.IO.Directory.GetCurrentDirectory()}{path}");
