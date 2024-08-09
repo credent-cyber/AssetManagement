@@ -2446,5 +2446,31 @@ namespace AssetManagement.Repositories
 
         }
         #endregion
+
+        #region Temporary
+        public async Task<ApiResponse<Employee>> EmployeeInsuranceByKey(string key)
+        {
+            var result = new ApiResponse<Employee>();
+            try
+            {
+                var data = AppDbCxt.Employee.FirstOrDefault(o => o.SecurityStamp == key);
+                if (data == null)
+                {
+                    result.Message = "You have already Updated your details";
+                    return result;
+                }
+                
+                result.Result = data;
+                result.IsSuccess = true;
+            }
+            catch (Exception ex)
+            {
+                result.Message = ex.Message;
+            }
+            return result;
+        }
+
+
+        #endregion
     }
 }

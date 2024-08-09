@@ -20,20 +20,20 @@
 
 <style>
 
-.name-column {
-    width: 200px;
-}
-
-@@media (max-width: 768px) {
     .name-column {
-        width: 150px; 
+        width: 200px;
     }
 
-    .table-responsive {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
+    @@media (max-width: 768px) {
+        .name-column {
+            width: 150px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
     }
-}
 
 </style>
 <div>
@@ -42,7 +42,7 @@
             @Title
         </div>
         <div class="card-body">
-            @if (model == null)
+            @if (Onload)
             {
                 <div class="loader-container mt-4">
                     <div class="loader"></div>
@@ -558,7 +558,8 @@
                                             <th style="width: 50px;">SN</th>
                                             <th class="name-column">Name</th>
                                             <th style="width: 100px;">Relation</th>
-                                            <th style="width: 150px;">DOB</th>
+                                            <th style="width: 100px;">DOB</th>
+                                            <th style="width: 150px;">Aadhaar</th>
                                             <th style="width: 80px;">Age</th>
                                             <th style="width: 60px;">
                                                 <a title="Add Row" style="cursor:pointer; color:darkblue" @onclick="AddEmployeeInsurance">
@@ -582,6 +583,7 @@
                                                     </select>
                                                 </td>
                                                 <td><input type="date" class="form-control" @bind="@e.value.DOB" /></td>
+                                                <td><input type="text" class="form-control" @bind="@e.value.Aadhaar" /></td>
                                                 <td>
                                                     <input type="text" class="form-control" value="@(CalculateAge(e.value.DOB))" readonly />
                                                 </td>
@@ -710,51 +712,52 @@
                         <button type="button" class="btn btn-danger col-md-2" @onclick="OnClose">Close</button>
                     </div>
                 </EditForm>
-                <Dailog Title="@Message" Show="@show" OnCloseDialog="ResetForm">
-                    @if (show)
-                    {
-                        @if (TaskCompleted)
-                        {
-                            <div style="text-align:center;">
-                                @MessageBody
-                            </div>
-                        }
-                        else
-                        {
-                            <div style="text-align:center">
-                                <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
-                            </div>
-                        }
-                    }
-                </Dailog>
-                <PageDialog Title="Add Skills" Show="AddSkill" ClosePageDialog="ClosePopUp">
-                    <AddSkillComponent />
-                </PageDialog>
-
-                <PageDialog Title="Add Designtions" Show="AddDesigntions" ClosePageDialog="ClosePopUp">
-                    <AddDesignationComponent OnSaveDesignation="HandleSaveDesignation" />
-                </PageDialog>
-
-                <FilePreviewDailog Title="Preview" Show="ShowPreview" ClosePreview="ClosePreview">
-                    <div style="width: 100%; overflow: auto;">
-                        @if (IsImageFile(filePath))
-                        {
-                            <ZoomableImageComponent ImageUrlPath="@filePath"
-                                                    ImageWidthInPx="400"
-                                                    ImageHeightInPx="400"
-                                                    ShowResetButton="true"
-                                                    DefaultScaleBy="0.1f" />
-                        }
-                        else
-                        {
-                            @* <iframe src="@filePath" style="height:400px; width:100%"></iframe> *@
-                            @* <a href="@filePath" target="_blank" rel="noopener noreferrer">Open PDF</a> *@
-                        }
-
-                    </div>
-                </FilePreviewDailog>
-
             }
+            <Dailog Title="@Message" Show="@show" OnCloseDialog="ResetForm">
+                @if (show)
+                {
+                    @if (TaskCompleted)
+                    {
+                        <div style="text-align:center;">
+                            @MessageBody
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="text-align:center">
+                            <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+                        </div>
+                    }
+                }
+            </Dailog>
+            <PageDialog Title="Add Skills" Show="AddSkill" ClosePageDialog="ClosePopUp">
+                <AddSkillComponent />
+            </PageDialog>
+
+            <PageDialog Title="Add Designtions" Show="AddDesigntions" ClosePageDialog="ClosePopUp">
+                <AddDesignationComponent OnSaveDesignation="HandleSaveDesignation" />
+            </PageDialog>
+
+            <FilePreviewDailog Title="Preview" Show="ShowPreview" ClosePreview="ClosePreview">
+                <div style="width: 100%; overflow: auto;">
+                    @if (IsImageFile(filePath))
+                    {
+                        <ZoomableImageComponent ImageUrlPath="@filePath"
+                                                ImageWidthInPx="400"
+                                                ImageHeightInPx="400"
+                                                ShowResetButton="true"
+                                                DefaultScaleBy="0.1f" />
+                    }
+                    else
+                    {
+                        @* <iframe src="@filePath" style="height:400px; width:100%"></iframe> *@
+                        @* <a href="@filePath" target="_blank" rel="noopener noreferrer">Open PDF</a> *@
+                    }
+
+                </div>
+            </FilePreviewDailog>
+
+
         </div>
     </div>
 
@@ -769,6 +772,7 @@
     [Parameter]
     public DateTime date { get; set; }
 
+    bool Onload = false;
     bool EmailRequest = false;
     private IEnumerable<dynamic> listItems;
     bool submit = false;
@@ -937,6 +941,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        Onload = true;
         BaseUri = NavigationManager.BaseUri;
         SkillOptions = new List<EmployeeSkills>(await client.GetAllSkill());
         company = new List<Company>(await client.GetAllCompany());
@@ -1004,7 +1009,7 @@
         if (Id > 0)
         {
             model = await client.GetEmployeeById(Id);
-            var EI =  new List<EmployeeInsurance>(await client.GetEmployeeInsuranceById(Id));
+            var EI = new List<EmployeeInsurance>(await client.GetEmployeeInsuranceById(Id));
             EmployeeInsurance = EI;
             employee = employee.Where(x => x.EmailId != model.EmailId).ToList();
             var skillOption = await client.GetEmployeeSkillsIDs(Id);
@@ -1039,7 +1044,7 @@
         {
             Init();
         }
-
+        Onload = false;
     }
 
     public async Task<EmployeeFilesMapping> GetEmployeeFiles(int id)
@@ -1078,7 +1083,7 @@
             // {
             //     insurance.EmployeeId = model.Id;
             // }
-        
+
             model.EmployeeInsurance = EmployeeInsurance;
 
             var response = await client.UpsertEmployeeAsync(model);

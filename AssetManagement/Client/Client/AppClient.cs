@@ -1470,5 +1470,51 @@ namespace AssetManagement.Client.Client
             }
         }
 
+        #region Temporary
+        public async Task<ApiResponse<Employee>> EmployeeInsuranceByKey(string Key)
+        {
+            var result = new ApiResponse<Employee>();
+            try
+            {
+                var payload = new GenericApiRequest<string>() { Param = Key };
+                var responce = await HttpClient.PostAsJsonAsync<GenericApiRequest<string>>($"api/App/employee-insurance", payload);
+                responce.EnsureSuccessStatusCode();
+                if (responce.IsSuccessStatusCode)
+                {
+                    var content = await responce.Content.ReadFromJsonAsync<ApiResponse<Employee>>();
+                    result.IsSuccess = true;
+                    result.Result = content.Result;
+                }
+            }
+            catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.Message = ex.Message;
+            }
+            return result;
+        }
+
+        public async Task<ApiResponse<string>> EmployeeInsuranceformSender()
+        {
+            var result = new ApiResponse<string>();
+            try
+            {
+                var res = await HttpClient.GetAsync($"api/App/EmployeeInsuranceformSender");
+
+                if (res.IsSuccessStatusCode)
+                {
+                    var content = await res.Content.ReadFromJsonAsync<ApiResponse<string>>();
+                    result.IsSuccess = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.Message = ex.Message;
+            }
+            return result;
+
+        }
+        #endregion
     }
 }

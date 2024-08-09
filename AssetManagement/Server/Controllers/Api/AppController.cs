@@ -1032,6 +1032,51 @@ namespace AssetManagement.Server.Controllers.Api
         }
         #endregion
 
+        #region Temporary
+        [HttpPost]
+        [Route("employee-insurance")]
+        [AllowAnonymous]
+        public async Task<ApiResponse<Employee>> EmployeeInsuranceByKey(GenericApiRequest<string> request)
+        {
+            return await _appRepository.EmployeeInsuranceByKey(request.Param);
+        }
 
+
+        [HttpGet]
+        [Route("EmployeeInsuranceformSender")]
+        public async Task<ApiResponse<string>> EmployeeInsuranceformSender()
+        {
+            var result = new ApiResponse<string>();
+            //var employees = await _appRepository.GetAllEmployee();
+            var employee = await _appRepository.GetEmployeeById(26);
+           // foreach (var employee in employees.Where(x => x.Status != EmployeeStatus.Resigned))
+            {
+                //string To = employee.EmailId;
+                string To = "cs.credent@gmail.com";
+                string Subject = "Employee Insurance Form";
+                string Body = $@"
+                <p>Dear {employee.EmployeeName},</p>
+                <p>We hope this message finds you well. Please fill out the following insurance form to update your insurance details:</p>
+                <p><a href='{employee.ReturnUrl.Replace("emp", "emp/insurance")}'>Click here to fill out the insurance form</a></p>
+                <p>Thank you,</p>
+                <p>{employee.Company?.Name}</p>";
+
+                try
+                {
+                    await _mailService.SendEmailAsync(To, Subject, Body);
+                }
+                catch (Exception ex)
+                {
+                    result.IsSuccess = false;
+                    result.Message = $"Failed to send email to {To}: {ex.Message}";
+                    return result;
+                }
+            }
+            result.IsSuccess = true;
+            result.Message = "Form successfully shared with employees.";
+            return result;
+        }
+
+        #endregion
     }
 }
