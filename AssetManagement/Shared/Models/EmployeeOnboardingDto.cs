@@ -101,6 +101,7 @@ namespace AssetManagement.Dto.Models
         public string CertificateFile { get; set; } = string.Empty;
        
         public string ProfilePhotoFile { get; set; } = string.Empty;
+        public string ResumeFile { get; set; } = string.Empty;
         public string SkillIDs { get; set; } = string.Empty;
         
         [NotMapped]

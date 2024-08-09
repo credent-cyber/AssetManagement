@@ -461,6 +461,41 @@
                         </div>
                     </div>
 
+                    <div class="form-group row mb-2">
+                        <label class="col-form-label col-md-2 bold-font">Upload Resume</label>
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <InputFile id="resumefile" OnChange="@LoadEmployeeResume" class="form-control" accept=".pdf, image/jpeg, image/jpg, image/png" />
+                                <div class="input-group-append">
+                                    <span class="input-group-text" style="height:100%">
+                                        @if (employeeResume == null && ResumeView == string.Empty)
+                                        {
+                                            <i class="fa fa-exclamation-circle" aria-hidden="true" title="No file to preview"></i>
+                                        }
+                                        else if ((model.Id > 0) && ResumeView != string.Empty)
+                                        {
+                                            if (IsImageFile(filePath))
+                                            {
+                                                <a @onclick="()=>{ShowPreview = true; filePath = Uri.EscapeUriString(ResumeView);}"><i class="fa fa-file text-warning" style="cursor: pointer" aria-hidden="true" title="View"></i></a>
+                                            }
+                                            else
+                                            {
+
+                                                <a href="@Uri.EscapeUriString(ResumeView)" target="_blank" rel="noopener noreferrer"> <i class="fa fa-file text-warning" style="cursor: pointer" aria-hidden="true" title="View"></i> </a>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <i class="fa fa-check text-success" title="Selected"></i>
+                                        }
+                                    </span>
+                                </div>
+                            </div>
+                            <p class="text-primary">Max allowed file size 2Mb</p>
+                            <p class="text-danger" style="margin-top: -18px;">@SizeLimitInfoResume</p>
+                        </div>
+                    </div>
+
                     <MudExpansionPanels MultiExpansion="true">
                         <MudExpansionPanel Text=" Permanent Address Details" MaxHeight="500">
                             <div class="form-group row">
@@ -814,6 +849,7 @@
     string SizeLimitInfoPassbook = string.Empty;
     string SizeLimitInfoCertificate = string.Empty;
     string SizeLimitInfoProfilePic = string.Empty;
+    string SizeLimitInfoResume = string.Empty;
 
     string Message = string.Empty;
     string MessageBody = "Thank you!";
@@ -834,6 +870,7 @@
     private IBrowserFile? bankPassbookFile;
     private IBrowserFile? certificateFiles;
     private IBrowserFile? employeeProfilePhoto;
+    private IBrowserFile? employeeResume;
 
 
     public List<EmployeeInsurance> EmployeeInsurance { get; set; } = new List<EmployeeInsurance>();
@@ -926,6 +963,21 @@
             employeeProfilePhoto = e.File;
         }
     }
+    private async Task LoadEmployeeResume(InputFileChangeEventArgs e)
+    {
+        SizeLimitInfoResume = string.Empty;
+        ResumeView = string.Empty;
+        //if(e.File.Size > 2097152)
+        if (e.File.Size > FileSizeLimit)
+        {
+            SizeLimitInfoResume = "File size is more then 2MB";
+            employeeResume = null;
+        }
+        else
+        {
+            employeeResume = e.File;
+        }
+    }
 
     public void Init()
     {
@@ -938,6 +990,7 @@
     string BankPassView = string.Empty;
     string CertificateView = string.Empty;
     string ProfilePicView = string.Empty;
+    string ResumeView = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -999,6 +1052,8 @@
                         CertificateView = $"{BaseUri}EmployeesZone/{data.CertificateFile}";
                     if (data.ProfilePhotoFile != "")
                         ProfilePicView = $"{BaseUri}EmployeesZone/{data.ProfilePhotoFile}";
+                    if (data.ResumeFile != "")
+                        ResumeView = $"{BaseUri}EmployeesZone/{data.ResumeFile}";
 
                     if (data.CompanyCode != null)
                         GetEmployeeId();
@@ -1027,6 +1082,8 @@
                     CertificateView = $"{BaseUri}EmployeesZone/{employeeFiles.CertificateFile}";
                 if (employeeFiles.ProfilePhotoFile != "")
                     ProfilePicView = $"{BaseUri}EmployeesZone/{employeeFiles.ProfilePhotoFile}";
+                if (employeeFiles.ResumeFile != "")
+                    ResumeView = $"{BaseUri}EmployeesZone/{employeeFiles.ResumeFile}";
             }
             if (model.AadhaarNumber != null)
             {
@@ -1111,9 +1168,10 @@
                         employeeFilesMapping.PanFile = employeeOnboardingDto.PanFile;
                         employeeFilesMapping.CertificateFile = employeeOnboardingDto.CertificateFile;
                         employeeFilesMapping.BankPassbookFile = employeeOnboardingDto.BankPassbookFile;
+                        employeeFilesMapping.ResumeFile = employeeOnboardingDto.ResumeFile;
                     }
 
-                    string[] propertyNames = { "Aadhaar", "Pan", "BankPassbook", "Certificate", "ProfilePhoto" };
+                    string[] propertyNames = { "Aadhaar", "Pan", "BankPassbook", "Certificate", "ProfilePhoto","Resume" };
                     foreach (string propertyName in propertyNames)
                     {
                         IBrowserFile file = null;
@@ -1133,6 +1191,9 @@
                                 break;
                             case "ProfilePhoto":
                                 file = employeeProfilePhoto;
+                                break; 
+                            case "Resume":
+                                file = employeeResume;
                                 break;
                         }
 

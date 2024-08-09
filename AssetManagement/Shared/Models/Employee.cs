@@ -315,7 +315,9 @@ namespace AssetManagement.Dto.Models
         public Relation Relation { get; set; }
 
         public DateTime DOB { get; set; }
+        
 
+        [RegularExpression(@"^[0-9]{12}$", ErrorMessage = "Invalid Aadhaar Number!")]
         public string Aadhaar { get; set; } = string.Empty;
 
         public int Age { get; set; }

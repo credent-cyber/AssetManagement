@@ -619,6 +619,10 @@ namespace AssetManagement.Repositories
                 {
                     existingData.ProfilePhotoFile = data.ProfilePhotoFile;
                 }
+                if (!string.IsNullOrEmpty(data.ResumeFile))
+                {
+                    existingData.ResumeFile = data.ResumeFile;
+                }
 
                 // Update the database
                 AppDbCxt.EmployeeFilesMapping.Update(existingData);
@@ -647,10 +651,18 @@ namespace AssetManagement.Repositories
 
         public async Task<IEnumerable<EmployeeFilesMapping>> GetAllEmployeeFileMap()
         {
+            try
+            {
             IEnumerable<EmployeeFilesMapping> result = null;
 
-            result = AppDbCxt.EmployeeFilesMapping.ToList();
-            return result;
+                result = AppDbCxt.EmployeeFilesMapping.ToList();
+                return result;
+
+            }
+            catch(Exception ex)
+            {
+                return null;
+            }
         }
 
         public async Task<ApiResponse<List<EmployeeImport>>> UpsertImportEmployeeAsync(List<EmployeeImport> data)

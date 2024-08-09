@@ -16,6 +16,7 @@ namespace AssetManagement.Dto.Models
         public string BankPassbookFile { get; set; } = string.Empty;
         public string CertificateFile { get; set; } = string.Empty;
         public string ProfilePhotoFile { get; set; } = string.Empty;
+        public string ResumeFile { get; set; } = string.Empty;
 
         [ForeignKey("EmployeeId")]
         public virtual Employee? Employee { get; set;}
