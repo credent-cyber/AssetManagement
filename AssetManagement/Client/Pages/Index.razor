@@ -8,163 +8,21 @@
 @attribute [Authorize]
 @inject IJSRuntime JSRuntime
 
-<div>
+<div class="card-body">
     <div class="row">
-
-        <div class="col-xl-3 col-md-6">
-            <div class="card bg-info text-white mb-4">
-                <div class="card-body" style="height:7vh">
-                    <i class="fa fa-building-o icon" aria-hidden="true"></i>
-                    Companies <i style="float:right; color:black; font-size:20px; font-weight:600">@dashboardStatics.Companies</i>
-                </div>
-                <div class="card-footer d-flex align-items-center justify-content-between">
-                    <a class="small text-white stretched-link" href="companies">View Details</a>
-                    <div class="small text-white"><i class="fa fa-arrow-circle-o-right fa-2x" aria-hidden="true"></i></div>
-                </div>
+        <div class="col-3">
+            <div class="mb-3">
+                <label class="form-label">Select Asset</label>
+                <DropdownSelect @bind-Value="selectedAssetId"
+                                EventDropdown="OnAssetChanged"
+                                DataSource="DropdownAssett"
+                                EmptyText="Select an asset"
+                                Css="form-select form-select-sm" />
             </div>
         </div>
-
-        <div class="col-xl-3 col-md-6">
-            <div class="card bg-warning text-white mb-4">
-                <div class="card-body" style="height:7vh">
-                    <i class="fa fa-users icon" aria-hidden="true"></i>
-                    Total Employees <i style="float:right; color:black; font-size:20px; font-weight:600">@dashboardStatics.Employees</i>
-                </div>
-                <div class="card-footer d-flex align-items-center justify-content-between">
-                    <a class="small text-white stretched-link" href="employees">View Details</a>
-                    <div class="small text-white"><i class="fa fa-arrow-circle-o-right fa-2x" aria-hidden="true"></i></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6">
-            <div class="card bg-success text-white mb-4">
-                <div class="card-body" style="height:7vh">
-                    <i class="fa fa-laptop icon" aria-hidden="true"></i>
-                    Total Assets  <i style="float:right; color:black; font-size:20px; font-weight:600">@dashboardStatics.Assets</i>
-                </div>
-                <div class="card-footer d-flex align-items-center justify-content-between">
-                    <a class="small text-white stretched-link" href="assets">View Details</a>
-                    <div class="small text-white"><i class="fa fa-arrow-circle-o-right fa-2x" aria-hidden="true"></i></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6">
-            <div class="card bg-danger text-white mb-4">
-                <div class="card-body" style="height:7vh">
-                    <i class="fa fa-pencil-square-o icon" aria-hidden="true"></i>
-                    Total Allocations  <i style="float:right; color:black; font-size:20px; font-weight:600">@dashboardStatics.Allocations</i>
-                </div>
-                <div class="card-footer d-flex align-items-center justify-content-between">
-                    <a class="small text-white stretched-link" href="allocations">View Details</a>
-                    <div class="small text-white"><i class="fa fa-arrow-circle-o-right fa-2x" aria-hidden="true"></i></div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-    <div class="form-group row m-0 mb-2" style="background: cadetblue; padding: 2px;border-radius: 4px;">
-        <label class="col-md-2 bold-font p-2 text-center">Select Company</label>
-        <div class="col-md-10">
-            <select @bind-value="SelectedCompany" class="form-control" @onchange="FilterChart" @bind-value:event="oninput">
-                @foreach (var cc in CompanyCodes)
-                {
-                    <option value="@cc">@cc</option>
-                }
-            </select>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-xl-6">
-            <div class="col-xl-12">
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <i class="fas fa-chart-area mr-1"></i>
-                        Company Data Chart
-                    </div>
-                    <div class="card-body" style="height:35vh">
-                        <Chart Id="companybar" Type="@AssetManagement.Dto.Dashboard.ChartType.bar"
-                               Datasets="@CompanyStatics"
-                               Labels="@CompanyStaticsLabels"
-                               AspectRatio="false"
-                               IndexAxis="y"
-                               borderRadius="10"
-                               IsStacked="false">
-                        </Chart>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xl-12">
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <i class="fas fa-chart-area mr-1"></i>
-                        Allocation Statistics
-                    </div>
-                    <div class="card-body" style="height:35vh">
-                        <GaugeChart Id="allocationguage" Type="@AssetManagement.Dto.Dashboard.ChartType.doughnut"
-                                    Data="@AllocationChartData.ToArray()"
-                                    Company="@AllocationCompanyCode"
-                                    BackgroundColor="@AllocationChartBackground.ToArray()"
-                                    IsStacked="false"
-                                    borderRadius="10"
-                                    Labels="@(new[] { "Temporary Allocation","Permanent Allocation" })">
-                        </GaugeChart>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <div class="col-xl-6">
-            <div class="col-xl-12">
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <i class="fas fa-chart-area mr-1"></i>
-                        Employee's Data Chart
-                    </div>
-                    <div class="card-body" style="height:35vh">
-                        <StackedBarChart Id="employeebar" Type="@AssetManagement.Dto.Dashboard.ChartType.bar"
-                                         Datasets="@EmployeeStatics"
-                                         Labels="@EmployeeStaticsLabels"
-                                         AspectRatio="false"
-                                         borderRadius="10"
-                                         IsStacked="false">
-                        </StackedBarChart>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-12">
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <i class="fas fa-chart-bar mr-1"></i>
-                        Asset statistics
-                    </div>
-                    <div class="card-body" style="height:35vh">
-                        <Chart Id="assetbar" Type="@AssetManagement.Dto.Dashboard.ChartType.bar"
-                               Datasets="@AssetsStatics"
-                               Labels="@AssetsStaticsLabels"
-                               AspectRatio="false"
-                               IndexAxis="x"
-                               borderRadius="10"
-                               IsStacked="false">
-                        </Chart>
-                       @* <PieChart Id="assetpie" Type="@AssetManagement.Dto.Dashboard.ChartType.pie"
-                                    Data="@AssetChartData.ToArray()"
-                                    BackgroundColor="@AssetChartBackground.ToArray()"
-                                    IsStacked="false"
-                                    Labels="@(new[] { "Total Asset","Free Assets", "Allocated Assets" })">
-                        </PieChart>*@
-                    </div>
-                </div>
-            </div>
-
-
-        </div>
-
     </div>
 </div>
+
 
 @code {
 
@@ -190,9 +48,18 @@
     public List<string> CompanyCodes = new();
     DashboardStatics dashboardStatics = new();
     MasterStatics MasterStatics = new();
+ 
 
+
+    private List<KeyValuePair<string, string>> DropdownAssett;
+    private string selectedAssetId;
     protected override async Task OnInitializedAsync()
     {
+        // Fetch assets from your service (e.g., using an API client)
+        var assets = new List<Asset>(await client.GetAllAsset());
+
+        // Convert to dropdown format
+        DropdownAssett = assets.Select(a => new KeyValuePair<string, string>(a.Id.ToString(), $"{a.Brand} {a.Model} ({a.SerialNumber})")).ToList();
 
         var StartDate = new DateTime(DateTime.Now.Year, 1, 1);
         var EndDate = new DateTime(DateTime.Now.Year, 12, 31).AddHours(24).AddSeconds(-1);
@@ -204,6 +71,12 @@
         if (MasterStatics != null && CompanyCodes.Count() > 0)
             DisplayCharts(MasterStatics, CompanyCodes[0].Trim());
 
+    }
+    private Task OnAssetChanged(string value)
+    {
+        selectedAssetId = value;
+        // Handle asset selection change
+        return Task.CompletedTask;
     }
 
     Random random = new Random();
