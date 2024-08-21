@@ -20,6 +20,7 @@
         <div class="card-body">
 
             <button type="button" class="btn btn-primary" @onclick="OnEIFromSend">Send Insurance Form to All</button>
+            <button type="button" class="btn btn-primary" @onclick="ChangeReturnUrl">ChangeReturnUrl</button>
             @if (show)
             {
                 @if (TaskCompleted)
@@ -49,6 +50,44 @@
     bool IsError = false;
     bool IsSuccess = false;
     bool TaskCompleted = false;
+
+
+
+    protected async Task ChangeReturnUrl()
+    {
+        Message = string.Empty;
+        MessageBody = "Thank you!";
+        IsError = false;
+        IsSuccess = false;
+        TaskCompleted = false;
+        show = true;
+        try
+        {
+            Message = "Please wait...";
+            var response = await client.ChangeReturnUrl();
+            if (response.IsSuccess)
+            {
+                Message = response.Message;
+                TaskCompleted = true;
+            }
+            else
+            {
+                Message = "Error!";
+                MessageBody = response.Message;
+                TaskCompleted = true;
+            }
+            StateHasChanged();
+            _timer = new Timer(TimerCallback, null, _delay, Timeout.Infinite);
+        }
+        catch (Exception ex)
+        {
+            IsError = true;
+            Message = "Error!";
+            MessageBody = ex.Message;
+            TaskCompleted = true;
+        }
+    }
+
 
     protected async Task OnEIFromSend()
     {

@@ -1515,6 +1515,28 @@ namespace AssetManagement.Client.Client
             return result;
 
         }
+
+        public async Task<ApiResponse<string>> ChangeReturnUrl()
+        {
+            var result = new ApiResponse<string>();
+            try
+            {
+                var res = await HttpClient.GetAsync($"api/App/ChangeReturnUrl");
+
+                if (res.IsSuccessStatusCode)
+                {
+                    var content = await res.Content.ReadFromJsonAsync<ApiResponse<string>>();
+                    result.IsSuccess = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.Message = ex.Message;
+            }
+            return result;
+
+        }
         #endregion
     }
 }

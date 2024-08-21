@@ -111,8 +111,14 @@
                         </div>
                         <div class="col-md-1"></div>
                         <div class="col-md-3">
-                            <button type="button" style="width:100%" @onclick="()=>EmailRequest = !EmailRequest" class="btn btn-primary">Create Email Request</button>
+                            <button type="button"
+                                    style="width:100%"
+                                    @onclick="() => EmailRequest = !EmailRequest"
+                                    class="btn btn-primary @(EmailRequest ? "disabled" : "")">
+                                @(EmailRequest ? "Request Sent" : "Create Email Request")
+                            </button>
                         </div>
+
                     </div>
 
                     <div class="form-group row mb-2">
@@ -1035,6 +1041,7 @@
                     model.EmpAccountName = data.EmpAccountName;
                     model.EmpBankAccNumber = data.EmpBankAccNumber;
                     model.EmpBankIfsc = data.EmpBankIfsc;
+                    model.EmailId = data.ExternalEmailId;
                     model.ExternalEmailId = data.ExternalEmailId;
                     model.EmployeeEducation = data.EmployeeGraduation;
                     model.OtherSkills = data.OtherSkills;

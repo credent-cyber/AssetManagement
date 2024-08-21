@@ -401,7 +401,7 @@ namespace AssetManagement.Server.Controllers.Api
                 path = Path.Combine(_env.ContentRootPath, "wwwroot", "EmailTemplets/TableTemplate.txt");
 #endif
             string mailTo = _configuration.GetValue<string>("AdminEmail");
-            string Subject = "AssetManagement Application Employee Form Details";
+            string Subject = "Request to Create Email";
             string link = createEmailRequest.LandingUrl.Replace("emp", "emp/mailupdate");
             try
             {
@@ -417,7 +417,7 @@ namespace AssetManagement.Server.Controllers.Api
                 Thank You.
                 <br/><br/>
                 <img src=""{trackingUrl}"" alt=""tracking pixel"" width=""1"" height=""1"" style=""display:none;"">";
-                await _mailService.SendEmailAsync("chhagan.sinha@credentinfotech.com", Subject, body);
+                await _mailService.SendEmailAsync(mailTo, Subject, body);
                 result.IsSuccess = true;
                 result.Message = $"Sent";
 
@@ -1043,34 +1043,63 @@ namespace AssetManagement.Server.Controllers.Api
 
 
         [HttpGet]
+        [Route("ChangeReturnUrl")]
+        public async Task<ApiResponse<string>> ChangeReturnUrl()
+        {
+            return await _appRepository.ChangeReturnUrl();
+        }   
+        
+        [HttpGet]
         [Route("EmployeeInsuranceformSender")]
         public async Task<ApiResponse<string>> EmployeeInsuranceformSender()
         {
             var result = new ApiResponse<string>();
-            //var employees = await _appRepository.GetAllEmployee();
-            var employee = await _appRepository.GetEmployeeById(26);
-           // foreach (var employee in employees.Where(x => x.Status != EmployeeStatus.Resigned))
-            {
-                //string To = employee.EmailId;
-                string To = "cs.credent@gmail.com";
-                string Subject = "Employee Insurance Form";
-                string Body = $@"
-                <p>Dear {employee.EmployeeName},</p>
-                <p>We hope this message finds you well. Please fill out the following insurance form to update your insurance details:</p>
-                <p><a href='{employee.ReturnUrl.Replace("emp", "emp/insurance")}'>Click here to fill out the insurance form</a></p>
-                <p>Thank you,</p>
-                <p>{employee.Company?.Name}</p>";
+            var employees = await _appRepository.GetAllEmployee();
+            //var employee = await _appRepository.GetEmployeeById(26);
 
-                try
+            List<string> validEmployeeIds = new List<string>
+            {
+                "CISLL053", "CISLL064", "IPAI021", "IPAI016", "STN02",
+                "CISLL058", "CISLL046", "CISLL038", "CISLL008", "CISLL036",
+                "CISLL059", "CISLL060", "CISLL061", "CISLL055", "CISLL045",
+                "CISLL035", "CISLL052", "CISLL001", "IPAI015", "CISLL002",
+                "IPAI033", "IPAI030", "CISLL056", "IPAI020", "STN06",
+                "CISLL054", "CISLL063", "IPAI023", "CISLL004", "CISLL041",
+                "CISLL040", "CISLL007", "CISLL033", "CISLL032", "CISLL017",
+                "CISLL062", "CISLL049"
+            };
+
+            foreach (var employee in employees.Where(x => x.Status != EmployeeStatus.Resigned))
+            {
+                if (validEmployeeIds.Contains(employee.EmployeeId))
                 {
-                    await _mailService.SendEmailAsync(To, Subject, Body);
+                    //string To = employee.EmailId;
+                    string To = "cs.credent@gmail.com";
+                    string Subject = "Employee Insurance Form";
+                    string Body = $@"
+                    <p>Dear {employee.EmployeeName},</p>
+                    <p>We hope this message finds you well. Please fill out the following insurance form to update your insurance details:</p>
+                    <p><a href='{employee.ReturnUrl.Replace("emp", "emp/insurance")}'>Click here to fill out the insurance form</a></p>
+                    <p>Thank you,</p>
+                    <p>{employee.Company?.Name}</p>";
+
+                    try
+                    {
+                        await _mailService.SendEmailAsync(To, Subject, Body);
+                    }
+                    catch (Exception ex)
+                    {
+                        result.IsSuccess = false;
+                        result.Message = $"Failed to send email to {To}: {ex.Message}";
+                        return result;
+                    }
                 }
-                catch (Exception ex)
+                else
                 {
-                    result.IsSuccess = false;
-                    result.Message = $"Failed to send email to {To}: {ex.Message}";
-                    return result;
+                    // Skip processing for this employee
+                    continue;
                 }
+
             }
             result.IsSuccess = true;
             result.Message = "Form successfully shared with employees.";

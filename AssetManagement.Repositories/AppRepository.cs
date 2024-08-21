@@ -2483,6 +2483,57 @@ namespace AssetManagement.Repositories
         }
 
 
+        public async Task<ApiResponse<string>> ChangeReturnUrl()
+        {
+            var result = new ApiResponse<string>();
+            try
+            {
+                // Update Employee ReturnUrl
+                var employees = await AppDbCxt.Employee.ToListAsync();
+                foreach (var e in employees)
+                {
+                    if (!string.IsNullOrEmpty(e.ReturnUrl))
+                    {
+                        e.ReturnUrl = e.ReturnUrl.Replace("assetmanagementapplication.azurewebsites.net", "asset.credentinfotech.com");
+                        AppDbCxt.Employee.Update(e);
+                    }
+                }
+
+                // Update Allocation ReturnUrl
+                var allocations = await AppDbCxt.Allocation.ToListAsync();
+                foreach (var a in allocations)
+                {
+                    if (!string.IsNullOrEmpty(a.ReturnUrl))
+                    {
+                        a.ReturnUrl = a.ReturnUrl.Replace("assetmanagementapplication.azurewebsites.net", "asset.credentinfotech.com");
+                        AppDbCxt.Allocation.Update(a);
+                    }
+                }
+
+                // Update EmployeeOnboarding ReturnUrl
+                var employeeOnboardings = await AppDbCxt.EmployeeOnboarding.ToListAsync();
+                foreach (var eo in employeeOnboardings)
+                {
+                    if (!string.IsNullOrEmpty(eo.ReturnUrl))
+                    {
+                        eo.ReturnUrl = eo.ReturnUrl.Replace("assetmanagementapplication.azurewebsites.net", "asset.credentinfotech.com");
+                        AppDbCxt.EmployeeOnboarding.Update(eo);
+                    }
+                }
+
+                // Save changes asynchronously
+                await AppDbCxt.SaveChangesAsync();
+
+                result.IsSuccess = true;
+            }
+            catch (Exception ex)
+            {
+                result.Message = $"An error occurred while updating ReturnUrl: {ex.Message}";
+                result.IsSuccess = false;
+            }
+            return result;
+        }
+
         #endregion
     }
 }
