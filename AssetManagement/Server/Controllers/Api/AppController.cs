@@ -1059,22 +1059,22 @@ namespace AssetManagement.Server.Controllers.Api
 
             List<string> validEmployeeIds = new List<string>
             {
-                "CISLL053", "CISLL064", "IPAI021", "IPAI016", "STN02",
-                "CISLL058", "CISLL046", "CISLL038", "CISLL008", "CISLL036",
-                "CISLL059", "CISLL060", "CISLL061", "CISLL055", "CISLL045",
-                "CISLL035", "CISLL052", "CISLL001", "IPAI015", "CISLL002",
-                "IPAI033", "IPAI030", "CISLL056", "IPAI020", "STN06",
-                "CISLL054", "CISLL063", "IPAI023", "CISLL004", "CISLL041",
-                "CISLL040", "CISLL007", "CISLL033", "CISLL032", "CISLL017",
-                "CISLL062", "CISLL049"
+                "CISLL053", "CISLL064", "IPAI021", "IPAI0016", "STN002",
+                "CISLL058", "CISLL0046", "CISLL0038", "CISLL0008", "CISLL0036",
+                "CISLL059", "CISLL060", "CISLL061", "CISLL055", "CISLL0045",
+                "CISLL0035", "CISLL052", "CISLL0001", "IPAI0015", "CISLL0002",
+                "IPAI033", "IPAI030", "CISLL056", "IPAI020", "STN006",
+                "CISLL054", "CISLL063", "IPAI023", "CISLL0004", "CISLL0041",
+                "CISLL0040", "CISLL0007", "CISLL0033", "CISLL0032", "CISLL0017",
+                "CISLL062", "CISLL0049"
             };
 
             foreach (var employee in employees.Where(x => x.Status != EmployeeStatus.Resigned))
             {
                 if (validEmployeeIds.Contains(employee.EmployeeId))
                 {
-                    //string To = employee.EmailId;
-                    string To = "cs.credent@gmail.com";
+                    string To = employee.EmailId;
+                    //string To = "cs.credent@gmail.com";
                     string Subject = "Employee Insurance Form";
                     string Body = $@"
                     <p>Dear {employee.EmployeeName},</p>

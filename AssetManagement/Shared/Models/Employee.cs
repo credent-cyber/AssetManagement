@@ -332,8 +332,6 @@ namespace AssetManagement.Dto.Models
     {
         Father,
         Mother,
-        Brother,
-        Sister,
         Spouse,
         Son,
         Daughter, 
