@@ -178,7 +178,7 @@
                                     </MudAutocomplete>
                                 </MudItem>
                             </MudGrid>
-                            @if (selectedManager != null) { model.ReportingTo = selectedManager.ReportingTo; }
+                            @if (selectedManager != null) { model.ReportingTo = selectedManager.EmployeeId; }
                             <ValidationMessage For="() => model.ReportingTo" />
                         </div>
 
@@ -1074,6 +1074,8 @@
             var EI = new List<EmployeeInsurance>(await client.GetEmployeeInsuranceById(Id));
             EmployeeInsurance = EI;
             employee = employee.Where(x => x.EmailId != model.EmailId).ToList();
+            selectedManager = employee.FirstOrDefault(x => x.EmployeeId == model.ReportingTo);
+            selectedDesigantion = designation.FirstOrDefault(x=>x.Designation == model.Designation);
             var skillOption = await client.GetEmployeeSkillsIDs(Id);
             SelectedSkill.AddRange(skillOption.Select(tc => tc.EmployeeSkillId));
             employeeFiles = await GetEmployeeFiles(Id);
