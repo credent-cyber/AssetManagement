@@ -457,6 +457,71 @@
                                 </div>
                             </div>
                         </MudExpansionPanel>
+                        <MudExpansionPanel Text="Insurance Form" MaxHeight="500" Class="custom-header" IsExpanded="true">
+                            <div class="form-group row mb-2">
+                                <label class="col-form-label col-md-2 bold-font">Name</label>
+                                <div class="col-md-10">
+                                    <span class="form-control"> @model.EmployeeName</span>
+                                </div>
+
+                                <label class="col-form-label col-md-2 bold-font">EmployeeId</label>
+                                <div class="col-md-10">
+                                    <span class="form-control"> @model.EmployeeId</span>
+                                </div>
+
+                                <label class="col-form-label col-md-2 bold-font">Email</label>
+                                <div class="col-md-10">
+                                    <span class="form-control"> @model.EmailId</span>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-striped table-bordered" style="margin-bottom: 0.2rem !important;">
+                                    <thead style="text-align:center">
+                                        <tr>
+                                            <th style="width: 50px;">SN</th>
+                                            <th class="name-column">Name</th>
+                                            <th style="width: 100px;">Relation</th>
+                                            <th style="width: 100px;">DOB</th>
+                                            <th style="width: 150px;">Aadhaar</th>
+                                            <th style="width: 80px;">Age</th>
+                                            <th style="width: 60px;">
+                                                <a title="Add Row" style="cursor:pointer; color:darkblue" @onclick="AddEmployeeInsurance">
+                                                    <i class="fa fa-plus-circle fa-2x" aria-hidden="true"></i>
+                                                </a>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var e in EmployeeInsurance.Select((value, index) => new { value, index }))
+                                        {
+                                            <tr>
+                                                <td>@(e.index + 1)</td>
+                                                <td><input type="text" class="form-control" @bind="@e.value.Name" /></td>
+                                                <td>
+                                                    <select class="form-control" @bind="@e.value.Relation">
+                                                        @foreach (var relation in Enum.GetValues(typeof(Relation)).Cast<Relation>())
+                                                        {
+                                                            <option value="@relation">@relation</option>
+                                                        }
+                                                    </select>
+                                                </td>
+                                                <td><input type="date" class="form-control" @bind="@e.value.DOB" /></td>
+                                                <td><input type="text" class="form-control" @bind="@e.value.Aadhaar" /></td>
+                                                <td>
+                                                    <input type="text" class="form-control" value="@(CalculateAge(e.value.DOB))" readonly />
+                                                </td>
+                                                <td style="text-align:center">
+                                                    <a title="Remove Row" style="cursor:pointer;" @onclick="() => RemoveEmployeeInsurance(e.value)">
+                                                        <i class="fa fa-trash fa-2x text-danger" aria-hidden="true"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </MudExpansionPanel>
                     </MudExpansionPanels>
 
 
@@ -650,6 +715,8 @@
             }
             var skillOption = await client.GetEmployeeSkillsIDs(model.Id);
             SelectedSkill.AddRange(skillOption.Select(tc => tc.EmployeeSkillId));
+            var EI = new List<EmployeeInsurance>(await client.GetEmployeeInsuranceById(model.Id));
+            EmployeeInsurance = EI;
             employeeFiles = await GetEmployeeFiles(model.Id);
             if (employeeFiles != null)
             {
@@ -706,6 +773,7 @@
         {
             Message = "Please wait";
             int Id = model.Id;
+            model.EmployeeInsurance = EmployeeInsurance;
             var response = await client.EmployeeDetailSeftUpdate(model);
 
             if (response.IsSuccess)
@@ -802,12 +870,12 @@
             model.CPin = string.Empty;
         }
     }
-    private void ResetForm()
+    private async void ResetForm()
     {
         show = false;
-        if (Message.Contains("Successfully Added"))
+        if (Message.Contains("Successfully Updated"))
         {
-            // Init();
+            await JSRuntime.InvokeVoidAsync("blazorCloseTab");
         }
     }
     public void OnClose()
@@ -937,5 +1005,24 @@
         AddSkill = false;
         ShowPreview = false;
         StateHasChanged();
+    }
+
+     private int CalculateAge(DateTime dob)
+    {
+        var today = DateTime.Today;
+        var age = today.Year - dob.Year;
+        if (dob.Date > today.AddYears(-age)) age--;
+        return age;
+    }
+    public List<EmployeeInsurance> EmployeeInsurance { get; set; } = new List<EmployeeInsurance>();
+    int SN = 0;
+    private void AddEmployeeInsurance()
+    {
+        EmployeeInsurance.Add(new EmployeeInsurance());
+    }
+
+    private void RemoveEmployeeInsurance(EmployeeInsurance e)
+    {
+        EmployeeInsurance.Remove(e);
     }
 }

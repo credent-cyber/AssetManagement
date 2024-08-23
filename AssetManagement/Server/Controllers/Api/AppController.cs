@@ -180,6 +180,7 @@ namespace AssetManagement.Server.Controllers.Api
 
         [HttpGet]
         [Route("EmployeeInsurance/{id}")]
+        [AllowAnonymous]
         public async Task<IEnumerable<EmployeeInsurance>> GetEmployeeInsuranceById(int id)
         {
             var data =  await _appRepository.GetEmployeeInsuranceById(id);
@@ -1059,29 +1060,33 @@ namespace AssetManagement.Server.Controllers.Api
 
             List<string> validEmployeeIds = new List<string>
             {
-                "CISLL053", "CISLL064", "IPAI021", "IPAI0016", "STN002",
-                "CISLL058", "CISLL0046", "CISLL0038", "CISLL0008", "CISLL0036",
-                "CISLL059", "CISLL060", "CISLL061", "CISLL055", "CISLL0045",
-                "CISLL0035", "CISLL052", "CISLL0001", "IPAI0015", "CISLL0002",
-                "IPAI033", "IPAI030", "CISLL056", "IPAI020", "STN006",
-                "CISLL054", "CISLL063", "IPAI023", "CISLL0004", "CISLL0041",
-                "CISLL0040", "CISLL0007", "CISLL0033", "CISLL0032", "CISLL0017",
-                "CISLL062", "CISLL0049"
+                //"CISLL053", "CISLL064", "IPAI021", "IPAI0016", "STN002",
+                //"CISLL058", "CISLL0046", "CISLL0038", "CISLL0008", "CISLL0036",
+                //"CISLL059", "CISLL060", "CISLL061", "CISLL055", "CISLL0045",
+                //"CISLL0035", "CISLL052", "CISLL0001", "IPAI0015", "CISLL0002",
+                //"IPAI033", "IPAI030", "CISLL056", "IPAI020", "STN006",
+                //"CISLL054", "CISLL063", "IPAI023", "CISLL0004", "CISLL0041",
+                //"CISLL0040", "CISLL0007", "CISLL0033", "CISLL0032", "CISLL0017",
+                //"CISLL062", "CISLL0049"
+                "CISLL0038"
             };
 
             foreach (var employee in employees.Where(x => x.Status != EmployeeStatus.Resigned))
             {
                 if (validEmployeeIds.Contains(employee.EmployeeId))
                 {
-                    string To = employee.EmailId;
                     //string To = "cs.credent@gmail.com";
+                    string To = employee.EmailId;
                     string Subject = "Employee Insurance Form";
                     string Body = $@"
-                    <p>Dear {employee.EmployeeName},</p>
-                    <p>We hope this message finds you well. Please fill out the following insurance form to update your insurance details:</p>
-                    <p><a href='{employee.ReturnUrl.Replace("emp", "emp/insurance")}'>Click here to fill out the insurance form</a></p>
-                    <p>Thank you,</p>
-                    <p>{employee.Company?.Name}</p>";
+<p>Dear {employee.EmployeeName},</p>
+<p>We hope this message finds you well. Please fill out the following insurance form to update your insurance details:</p>
+<p><a href='{employee.ReturnUrl.Replace("emp", "emp/insurance")}'>Click here to fill out the insurance form</a></p>
+<p>Thank you,</p>
+<p>{employee.Company?.Name}</p>
+<!-- Invisible tracking image -->
+<img src='https://localhost:7019/track/{employee.SecurityStamp}' style='display:none;' alt='' />
+";
 
                     try
                     {
@@ -1093,6 +1098,7 @@ namespace AssetManagement.Server.Controllers.Api
                         result.Message = $"Failed to send email to {To}: {ex.Message}";
                         return result;
                     }
+
                 }
                 else
                 {
@@ -1107,5 +1113,28 @@ namespace AssetManagement.Server.Controllers.Api
         }
 
         #endregion
+
+        [HttpGet("track/{key}")]
+        public IActionResult TrackEmail(string key)
+        {
+            // Log the email open event or handle it as needed
+            LogEmailOpened(key);
+
+            // Return a transparent 1x1 pixel image
+            var transparentImage = new byte[]
+            {
+            0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x01, 0x00, 0x01, 0x00, 0x80, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0x00,
+            0x00, 0x21, 0xf9, 0x04, 0x01, 0x00, 0x00, 0x00, 0x00, 0x2c, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00,
+            0x00, 0x02, 0x02, 0x44, 0x01, 0x00, 0x3b
+            };
+            return File(transparentImage, "image/gif");
+        }
+
+        private void LogEmailOpened(string key)
+        {
+            // Implement your logic to log or track the email open event
+            // For example, store the event in a database
+            // _yourDatabaseService.LogEmailOpen(key);
+        }
     }
 }
