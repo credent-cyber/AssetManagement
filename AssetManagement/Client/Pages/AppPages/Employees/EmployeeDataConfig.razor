@@ -612,6 +612,11 @@
                                     <tbody>
                                         @foreach (var e in EmployeeInsurance.Select((value, index) => new { value, index }))
                                         {
+                                            // Ensure DOB is set to today's date if it hasn't been set
+                                                if (e.value.DOB == default(DateTime))
+                                                {
+                                                    e.value.DOB = DateTime.Today;
+                                                }
                                             <tr>
                                                 <td>@(e.index + 1)</td>
                                                 <td><input type="text" class="form-control" @bind="@e.value.Name" /></td>
@@ -623,7 +628,10 @@
                                                         }
                                                     </select>
                                                 </td>
-                                                <td><input type="date" class="form-control" @bind="@e.value.DOB" /></td>
+                                                <td>
+                                                    <InputDate class="form-control" @bind-Value="@e.value.DOB" />
+                                                    <div style="margin-left:3px;">@e.value.DOB.ToString("dd-MMM-yyyy")</div>
+                                                </td>
                                                 <td><input type="text" class="form-control" @bind="@e.value.Aadhaar" /></td>
                                                 <td>
                                                     <input type="text" class="form-control" value="@(CalculateAge(e.value.DOB))" readonly />
@@ -885,6 +893,7 @@
     {
         EmployeeInsurance.Add(new EmployeeInsurance());
     }
+
 
     private void RemoveEmployeeInsurance(EmployeeInsurance e)
     {

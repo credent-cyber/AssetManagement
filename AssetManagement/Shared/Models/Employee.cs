@@ -167,7 +167,44 @@ namespace AssetManagement.Dto.Models
 
         public List<EmployeeInsurance>? EmployeeInsurance { get; set; }
     }
+    public class EmployeeInsurance
+    {
+        [Key]
+        public int Id { get; set; }
 
+        [Required]
+        public int EmployeeId { get; set; }
+
+        //[ForeignKey("EmployeeId")]
+        //[JsonIgnore]
+        //public virtual Employee? Employee { get; set; }
+
+        public string Name { get; set; } = string.Empty;
+
+        public Relation Relation { get; set; }
+
+        public DateTime DOB { get; set; } 
+
+
+        //[RegularExpression(@"^[0-9]{12}$", ErrorMessage = "Invalid Aadhaar Number!")]
+        public string Aadhaar { get; set; } = string.Empty;
+
+        public int Age { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        public DateTime? UpdatedAt { get; set; }
+    }
+
+    public enum Relation
+    {
+        Father,
+        Mother,
+        Spouse,
+        Son,
+        Daughter,
+        Me
+    }
     public class EmployeeImport
     {
         public string CompanyCode { get; set; } = string.Empty;
@@ -298,42 +335,5 @@ namespace AssetManagement.Dto.Models
         }
     }
 
-    public class EmployeeInsurance
-    {
-        [Key]
-        public int Id { get; set; }
-
-        [Required]
-        public int EmployeeId { get; set; }
-
-        //[ForeignKey("EmployeeId")]
-        //[JsonIgnore]
-        //public virtual Employee? Employee { get; set; }
-
-        public string Name { get; set; } = string.Empty;
-
-        public Relation Relation { get; set; }
-
-        public DateTime DOB { get; set; }
-        
-
-        [RegularExpression(@"^[0-9]{12}$", ErrorMessage = "Invalid Aadhaar Number!")]
-        public string Aadhaar { get; set; } = string.Empty;
-
-        public int Age { get; set; }
-
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
-
-        public DateTime ? UpdatedAt { get; set; } 
-    }
-
-
-    public enum Relation
-    {
-        Father,
-        Mother,
-        Spouse,
-        Son,
-        Daughter, 
-    }
+    
 }

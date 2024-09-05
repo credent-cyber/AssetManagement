@@ -908,19 +908,52 @@ namespace AssetManagement.Repositories
             {
                 if (data.Id > 0)
                 {
-                    var store = await AppDbCxt.Employee.FindAsync(data.Id);
+                    // Find the existing employee record in the database
+                    var store = await AppDbCxt.Employee
+                        .Include(e => e.EmployeeInsurance) // Include related EmployeeInsurance
+                        .FirstOrDefaultAsync(e => e.Id == data.Id);
+
                     if (store != null)
                     {
+                        // Detach existing EmployeeInsurance entries to avoid conflicts
                         AppDbCxt.Entry(store).State = EntityState.Detached;
+
+                        // Update basic fields that are not related to EmployeeInsurance
                         data.CompanyCode = store.CompanyCode;
                         data.EmployeeId = store.EmployeeId;
                         data.Status = store.Status;
                         data.ReportingTo = store.ReportingTo;
+
+                        // Update or add EmployeeInsurance entries
+                        if (data.EmployeeInsurance != null)
+                        {
+                            // Remove existing EmployeeInsurance entries
+                            store.EmployeeInsurance.Clear();
+
+                            // Add updated EmployeeInsurance entries
+                            foreach (var insurance in data.EmployeeInsurance)
+                            {
+                                // Ensure EmployeeId is set correctly for each insurance entry
+                                insurance.EmployeeId = data.Id;
+                                store.EmployeeInsurance.Add(insurance);
+                            }
+                        }
+
+                        // Update the Employee record
+                        AppDbCxt.Employee.Update(data);
+                        await AppDbCxt.SaveChangesAsync(); // Use async SaveChanges to persist changes
+
+                        result.Result = data;
+                        result.IsSuccess = true;
                     }
-                    AppDbCxt.Employee.Update(data);
-                    AppDbCxt.SaveChanges();
-                    result.Result = data;
-                    result.IsSuccess = true;
+                    else
+                    {
+                        result.Message = "Employee not found.";
+                    }
+                }
+                else
+                {
+                    result.Message = "Invalid Employee Id.";
                 }
             }
             catch (Exception ex)
@@ -930,6 +963,7 @@ namespace AssetManagement.Repositories
 
             return result;
         }
+
 
         #endregion
 
@@ -2465,7 +2499,7 @@ namespace AssetManagement.Repositories
             var result = new ApiResponse<Employee>();
             try
             {
-                var data = AppDbCxt.Employee.FirstOrDefault(o => o.SecurityStamp == key);
+                var data = AppDbCxt.Employee.Include(o=>o.EmployeeInsurance).FirstOrDefault(o => o.SecurityStamp == key);
                 if (data == null)
                 {
                     result.Message = "You have already Updated your details";

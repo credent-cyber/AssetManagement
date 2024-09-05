@@ -48,6 +48,7 @@ namespace AssetManagement.Dto
         public bool EMS { get; set; } 
         public bool CMS { get; set; }
         public string SitePermission { get; set; } = string.Empty;
+        public bool RunWF { get; set; } = true;
     }
 
 }

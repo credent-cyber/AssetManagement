@@ -245,9 +245,17 @@
                                         {
                                             <i class="fa fa-exclamation-circle" aria-hidden="true" title="No file to preview"></i>
                                         }
-                                        else if (model.Id > 0 && AdharView != string.Empty)
+                                        else if ((model.Id > 0 || Key != null) && AdharView != string.Empty)
                                         {
-                                            <a @onclick="()=>{ShowPreview = true; filePath = AdharView;}"><i class="fa fa-file text-warning" style="cursor: pointer" aria-hidden="true" title="View"></i></a>
+                                            if (IsImageFile(filePath))
+                                            {
+                                                <a @onclick="()=>{ShowPreview = true; filePath = Uri.EscapeUriString(AdharView);}"><i class="fa fa-file text-warning" style="cursor: pointer" aria-hidden="true" title="View"></i></a>
+                                            }
+                                            else
+                                            {
+
+                                                <a href="@Uri.EscapeUriString(AdharView)" target="_blank" rel="noopener noreferrer"> <i class="fa fa-file text-warning" style="cursor: pointer" aria-hidden="true" title="View"></i> </a>
+                                            }
                                         }
                                         else
                                         {
@@ -271,9 +279,17 @@
                                         {
                                             <i class="fa fa-exclamation-circle" aria-hidden="true" title="No file to preview"></i>
                                         }
-                                        else if (model.Id > 0 && PanView != string.Empty)
+                                        else if ((model.Id > 0 || Key != null) && PanView != string.Empty)
                                         {
-                                            <a @onclick="()=>{ShowPreview = true; filePath = PanView;}"><i class="fa fa-file text-warning" style="cursor: pointer" aria-hidden="true" title="View"></i></a>
+                                            if (IsImageFile(filePath))
+                                            {
+                                                <a @onclick="()=>{ShowPreview = true; filePath = Uri.EscapeUriString(PanView);}"><i class="fa fa-file text-warning" style="cursor: pointer" aria-hidden="true" title="View"></i></a>
+                                            }
+                                            else
+                                            {
+
+                                                <a href="@Uri.EscapeUriString(PanView)" target="_blank" rel="noopener noreferrer"> <i class="fa fa-file text-warning" style="cursor: pointer" aria-hidden="true" title="View"></i> </a>
+                                            }
                                         }
                                         else
                                         {
@@ -299,9 +315,18 @@
                                         {
                                             <i class="fa fa-exclamation-circle" aria-hidden="true" title="No file to preview"></i>
                                         }
-                                        else if (model.Id > 0 && BankPassView != string.Empty)
+                                        else if ((model.Id > 0 || Key != null) && BankPassView != string.Empty)
                                         {
-                                            <a @onclick="()=>{ShowPreview = true; filePath = BankPassView;}"><i class="fa fa-file text-warning" style="cursor: pointer" aria-hidden="true" title="View"></i></a>
+
+                                            if (IsImageFile(filePath))
+                                            {
+                                                <a @onclick="()=>{ShowPreview = true; filePath = Uri.EscapeUriString(BankPassView);}"><i class="fa fa-file text-warning" style="cursor: pointer" aria-hidden="true" title="View"></i></a>
+                                            }
+                                            else
+                                            {
+
+                                                <a href="@Uri.EscapeUriString(BankPassView)" target="_blank" rel="noopener noreferrer"> <i class="fa fa-file text-warning" style="cursor: pointer" aria-hidden="true" title="View"></i> </a>
+                                            }
                                         }
                                         else
                                         {
@@ -325,9 +350,18 @@
                                         {
                                             <i class="fa fa-exclamation-circle" aria-hidden="true" title="No file to preview"></i>
                                         }
-                                        else if (model.Id > 0 && CertificateView != string.Empty)
+                                        else if ((model.Id > 0 || Key != null) && CertificateView != string.Empty)
                                         {
-                                            <a @onclick="()=>{ShowPreview = true; filePath = CertificateView;}"><i class="fa fa-file text-warning" style="cursor: pointer" aria-hidden="true" title="View"></i></a>
+                                            if (IsImageFile(filePath))
+                                            {
+                                                <a @onclick="()=>{ShowPreview = true; filePath = Uri.EscapeUriString(CertificateView);}"><i class="fa fa-file text-warning" style="cursor: pointer" aria-hidden="true" title="View"></i></a>
+                                            }
+                                            else
+                                            {
+
+                                                <a href="@Uri.EscapeUriString(CertificateView)" target="_blank" rel="noopener noreferrer"> <i class="fa fa-file text-warning" style="cursor: pointer" aria-hidden="true" title="View"></i> </a>
+                                            }
+
                                         }
                                         else
                                         {
@@ -353,9 +387,19 @@
                                         {
                                             <i class="fa fa-exclamation-circle" aria-hidden="true" title="No file to preview"></i>
                                         }
-                                        else if (model.Id > 0 && ProfilePicView != string.Empty)
+                                        else if ((model.Id > 0 || Key != null) && ProfilePicView != string.Empty)
                                         {
-                                            <a @onclick="()=>{ShowPreview = true; filePath = ProfilePicView;}"><i class="fa fa-file text-warning" style="cursor: pointer" aria-hidden="true" title="View"></i></a>
+
+
+                                            if (IsImageFile(filePath))
+                                            {
+                                                <a @onclick="()=>{ShowPreview = true; filePath = Uri.EscapeUriString(ProfilePicView);}"><i class="fa fa-file text-warning" style="cursor: pointer" aria-hidden="true" title="View"></i></a>
+                                            }
+                                            else
+                                            {
+
+                                                <a href="@Uri.EscapeUriString(ProfilePicView)" target="_blank" rel="noopener noreferrer"> <i class="fa fa-file text-warning" style="cursor: pointer" aria-hidden="true" title="View"></i> </a>
+                                            }
                                         }
                                         else
                                         {
@@ -495,6 +539,11 @@
                                     <tbody>
                                         @foreach (var e in EmployeeInsurance.Select((value, index) => new { value, index }))
                                         {
+                                            // Ensure DOB is set to today's date if it hasn't been set
+                                            if (e.value.DOB == default(DateTime))
+                                            {
+                                                e.value.DOB = DateTime.Today;
+                                            }
                                             <tr>
                                                 <td>@(e.index + 1)</td>
                                                 <td><input type="text" class="form-control" @bind="@e.value.Name" /></td>
@@ -506,7 +555,10 @@
                                                         }
                                                     </select>
                                                 </td>
-                                                <td><input type="date" class="form-control" @bind="@e.value.DOB" /></td>
+                                                <td>
+                                                    <InputDate class="form-control" @bind-Value="@e.value.DOB" />
+                                                    <div style="margin-left:3px;">@e.value.DOB.ToString("dd-MMM-yyyy")</div>
+                                                </td>
                                                 <td><input type="text" class="form-control" @bind="@e.value.Aadhaar" /></td>
                                                 <td>
                                                     <input type="text" class="form-control" value="@(CalculateAge(e.value.DOB))" readonly />
@@ -1025,4 +1077,13 @@
     {
         EmployeeInsurance.Remove(e);
     }
+    
+    private bool IsImageFile(string filePath)
+    {
+        string[] imageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp" }; // Add more extensions if needed
+
+        string extension = System.IO.Path.GetExtension(filePath);
+        return imageExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase);
+    }
+
 }

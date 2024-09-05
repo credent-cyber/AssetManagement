@@ -246,7 +246,8 @@ namespace AssetManagement.Server
                                 { "EMS", request.EMS },
                                 { "CMS", request.CMS },
                                 { "AadharNumber", request.AadharNumber },
-                                { "SitePermission", request.Portal }
+                                { "SitePermission", request.Portal },
+                                { "RunWF", request.RunWF }
                             }
                         }
                     };
@@ -270,7 +271,8 @@ namespace AssetManagement.Server
                                 { "EMS", request.EMS },
                                 { "CMS", request.CMS },
                                 { "AadharNumber", request.AadharNumber },
-                                { "SitePermission", request.Portal }
+                                { "SitePermission", request.Portal },
+                                { "RunWF", request.RunWF }
                             }
                         }
                     };

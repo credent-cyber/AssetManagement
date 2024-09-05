@@ -110,10 +110,8 @@ namespace AssetManagement.Dto.Models
         public string CompanyName { get; set; } = string.Empty;
         public string? OtherSkills { get; set; }
 
-        [Required]
         public string Designation { get; set; } = string.Empty;
         
-        [Required]
         public string ReportingTo { get; set; } = string.Empty;
 
         [Required]
