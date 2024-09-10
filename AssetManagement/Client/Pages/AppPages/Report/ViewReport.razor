@@ -365,6 +365,9 @@
                                 <td>Brand</td>
                                 <td>Model</td>
                                 <td>Status</td>
+                                @* <td>EmployeeId</td> *@
+                                <td>Emoloyee Name</td>
+                                <td>Emoloyee Email</td>
                                 <td>Aquire Date</td>
                                 <td>Discard Date</td>
                   
@@ -389,6 +392,9 @@
                                         <td>@r.Brand</td>
                                         <td>@r.Model</td>
                                         <td>@r.Status</td>
+                                        @* <td>@r.EmployeeId</td> *@
+                                        <td>@r.EmployeeName</td>
+                                        <td>@r.EmployeeEmail</td>
                                         <td>@r.AcquireDate.ToString("dd/MM/yyyy")</td>
                                         <td>@r.DiscardDate?.ToString("dd/MM/yyyy")</td>
                                         

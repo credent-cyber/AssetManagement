@@ -21,14 +21,13 @@ namespace AssetManagement.Server.Controllers.Api.OData
         }
 
         [EnableQuery]
-
         public IQueryable<Asset> Get()
         {
-            var data = from ast in DbContext.Asset.AsQueryable()
-                       join alloc in DbContext.Allocation.AsQueryable() on ast.Id equals alloc.AssetId into allocGroup
-                       from alloc in allocGroup.DefaultIfEmpty()
-                       join emp in DbContext.Employee.AsQueryable() on alloc.EmployeeId equals emp.Id into empGroup
-                       from emp in empGroup.DefaultIfEmpty()
+            var data = from ast in DbContext.Asset
+                       join alloc in DbContext.Allocation on ast.Id equals alloc.AssetId into allocGroup
+                       from alloc in allocGroup.DefaultIfEmpty() // Left join for Allocation
+                       join emp in DbContext.Employee on alloc.EmployeeId equals emp.Id into empGroup
+                       from emp in empGroup.DefaultIfEmpty() // Left join for Employee
                        select new Asset
                        {
                            Id = ast.Id,
@@ -48,11 +47,13 @@ namespace AssetManagement.Server.Controllers.Api.OData
                            Status = ast.Status,
                            IsEngazed = ast.IsEngazed,
                            _AssetStatus = ast._AssetStatus,
+                           // If there's no employee or allocation, show "Unassigned"
                            EmployeeName = alloc != null && emp != null ? $"{emp.EmployeeName} ({emp.EmailId})" : "Unassigned"
                        };
 
-            return data.AsQueryable();
+            return data; // Return the IQueryable without calling AsQueryable again
         }
+
 
 
     }

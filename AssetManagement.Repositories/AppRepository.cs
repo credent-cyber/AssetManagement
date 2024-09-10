@@ -992,7 +992,7 @@ namespace AssetManagement.Repositories
                     EmpBankAccNumber = ed.EmpBankAccNumber,
                     EmpBankIfsc = ed.EmpBankIfsc,
                     EmpBankName = ed.EmpBankName,
-                    ProfilePhotoFile = efm == null ? "" : $"https://assetmanagementapplication.azurewebsites.net/EmployeesZone/{efm.ProfilePhotoFile}"
+                    ProfilePhotoFile = efm == null ? "" : $"https://asset.credentinfotech.com/EmployeesZone/{efm.ProfilePhotoFile}"
 
                 };
                 result.Result = employeePortalSPFX;
@@ -2456,41 +2456,73 @@ namespace AssetManagement.Repositories
             var result = new List<Asset>();
             try
             {
-                var assetData = AppDbCxt.Asset.ToList();
+                // Query to join Asset, Allocation, and Employee tables
+                var assetData = from ast in AppDbCxt.Asset
+                                join alloc in AppDbCxt.Allocation on ast.Id equals alloc.AssetId into allocGroup
+                                from alloc in allocGroup.DefaultIfEmpty() // Left join for Allocation
+                                join emp in AppDbCxt.Employee on alloc.EmployeeId equals emp.Id into empGroup
+                                from emp in empGroup.DefaultIfEmpty() // Left join for Employee
+                                select new Asset
+                                {
+                                    Id = ast.Id,
+                                    CompanyId = ast.CompanyId,
+                                    CompanyCode = ast.CompanyCode,
+                                    AssetTypeId = ast.AssetTypeId,
+                                    AssetType = ast.AssetType,
+                                    SubAssetType = ast.SubAssetType,
+                                    Brand = ast.Brand,
+                                    Model = ast.Model,
+                                    SerialNumber = ast.SerialNumber,
+                                    Description = ast.Description,
+                                    MacAddress = ast.MacAddress,
+                                    AcquireDate = ast.AcquireDate,
+                                    VendorName = ast.VendorName,
+                                    DiscardDate = ast.DiscardDate,
+                                    Status = ast.Status,
+                                    IsEngazed = ast.IsEngazed,
+                                    _AssetStatus = ast._AssetStatus,
+                                    // Add employee details if they exist, otherwise default to empty
+                                    EmployeeId = emp != null ? emp.Id.ToString() : string.Empty,
+                                    EmployeeEmail = emp != null ? emp.EmailId : string.Empty,
+                                    EmployeeName = emp != null ? emp.EmployeeName : "Unassigned"
+                                };
+
+                // Apply filters based on the model input
                 if (model.Company != null)
-                    assetData = assetData.Where(c => c.CompanyCode == model.Company).ToList();
+                    assetData = assetData.Where(c => c.CompanyCode == model.Company);
 
                 if (model.AssetType != null)
-                    assetData = assetData.Where(c => c.AssetType == model.AssetType).ToList();
+                    assetData = assetData.Where(c => c.AssetType == model.AssetType);
 
                 if (model.Brand != null)
-                    assetData = assetData.Where(c => c.Brand == model.Brand).ToList();
+                    assetData = assetData.Where(c => c.Brand == model.Brand);
 
                 if (model.Model != null)
-                    assetData = assetData.Where(c => c.Model == model.Model).ToList();
+                    assetData = assetData.Where(c => c.Model == model.Model);
 
                 if (model.Status != null)
-                    assetData = assetData.Where(c => c.Status == model.Status).ToList();
+                    assetData = assetData.Where(c => c.Status == model.Status);
 
                 if (model.AquireDateStart != DateTime.MinValue && model.AquireDateEnd != DateTime.MinValue)
                 {
-                    assetData = assetData.Where(o => o.AcquireDate >= model.AquireDateStart && o.AcquireDate <= model.AquireDateEnd).ToList();
+                    assetData = assetData.Where(o => o.AcquireDate >= model.AquireDateStart && o.AcquireDate <= model.AquireDateEnd);
                 }
 
                 if (model.DiscardDateStart != DateTime.MinValue && model.DiscardDateEnd != DateTime.MinValue)
                 {
-                    assetData = assetData.Where(o => o.DiscardDate >= model.DiscardDateStart && o.DiscardDate <= model.DiscardDateEnd).ToList();
+                    assetData = assetData.Where(o => o.DiscardDate >= model.DiscardDateStart && o.DiscardDate <= model.DiscardDateEnd);
                 }
-                result = assetData;
 
+                result = await assetData.ToListAsync();
             }
             catch (Exception ex)
             {
-
+                // Handle exceptions as needed
             }
-            return result;
 
+            return result;
         }
+
         #endregion
 
         #region Temporary
