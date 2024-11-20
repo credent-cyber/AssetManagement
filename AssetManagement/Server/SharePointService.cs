@@ -15,7 +15,7 @@ namespace AssetManagement.Server
     {
         private readonly string tenantId = "cf92019c-152d-42f6-bbcc-0cf96e6b0108";
         private readonly string clientId = "ab34deba-f294-4103-995f-0f93546acb2e";
-        private readonly string clientSecret = "9B48Q~xXW4s73XNcUBMAxcb2hX2xzJMUYjwFGa6B";
+        private readonly string clientSecret = "GuU8Q~Dtf7iGj-Msa2VwnkozOSEN2vMT~YrHbbJP";
         string siteid = "Sharepoint Demo";
         string root = "https://credentinfotec.sharepoint.com";
         private readonly string siteUrl = "https://credentinfotec.sharepoint.com/sites/intranet";

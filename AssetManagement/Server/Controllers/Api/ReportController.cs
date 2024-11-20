@@ -272,6 +272,8 @@ namespace AssetManagement.Server.Controllers.Api
                     headerRow.Append(ConstructCell("Brand"));
                     headerRow.Append(ConstructCell("Model"));
                     headerRow.Append(ConstructCell("Status"));
+                    headerRow.Append(ConstructCell("EmployeeName"));
+                    headerRow.Append(ConstructCell("Employee Email"));
                     headerRow.Append(ConstructCell("Serial Number"));
                     headerRow.Append(ConstructCell("MAC Address"));
                     headerRow.Append(ConstructCell("Aquire Date"));
@@ -288,6 +290,8 @@ namespace AssetManagement.Server.Controllers.Api
                         dataRow.Append(ConstructCell(log.Brand));
                         dataRow.Append(ConstructCell(log.Model));
                         dataRow.Append(ConstructCell(log.Status.ToString()));
+                        dataRow.Append(ConstructCell(log.EmployeeName));
+                        dataRow.Append(ConstructCell(log.EmployeeEmail));
                         dataRow.Append(ConstructCell(log.SerialNumber));
                         dataRow.Append(ConstructCell(log.MacAddress));
                         dataRow.Append(ConstructCell(log.AcquireDate.ToString("dd/MM/yyyy")));
